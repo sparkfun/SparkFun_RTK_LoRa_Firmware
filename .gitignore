@@ -1,0 +1,7 @@
+*.d
+*.o
+*.su
+*.cyclo
+*.mk
+makefile
+objects.list

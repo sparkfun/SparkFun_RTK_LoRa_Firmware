@@ -329,7 +329,7 @@
 		<link>
 			<name>Application/User/SubGHz_Phy/App/drv_flash.c</name>
 			<type>1</type>
-			<location>D:/lora_fss/RTCM_TRX_FIX1/SubGHz_Phy/App/drv_flash.c</location>
+			<locationURI>PARENT-1-PROJECT_LOC/SubGHz_Phy/App/drv_flash.c</locationURI>
 		</link>
 		<link>
 			<name>Application/User/SubGHz_Phy/App/drv_radio.c</name>
@@ -349,7 +349,7 @@
 		<link>
 			<name>Application/User/SubGHz_Phy/App/rtcm_crc.c</name>
 			<type>1</type>
-			<location>D:/lora_fss/RTCM_TRX_FIX1/SubGHz_Phy/App/rtcm_crc.c</location>
+			<locationURI>PARENT-1-PROJECT_LOC/SubGHz_Phy/App/rtcm_crc.c</locationURI>
 		</link>
 		<link>
 			<name>Application/User/SubGHz_Phy/App/subghz_phy_app.c</name>

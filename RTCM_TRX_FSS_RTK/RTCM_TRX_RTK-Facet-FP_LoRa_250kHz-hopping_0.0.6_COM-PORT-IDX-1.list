@@ -7640,7 +7640,7 @@ static void pull_rtcm_to_uart_handler(void *arg)
  8002f54:	2300      	movs	r3, #0
  8002f56:	f8c7 3134 	str.w	r3, [r7, #308]	@ 0x134
  8002f5a:	e023      	b.n	8002fa4 <pull_rtcm_to_uart_handler+0x3fc>
-			{
+				{
 					int length = MIN(SPLIT_SIZE,rtcm_len - i);
  8002f5c:	f8d7 3134 	ldr.w	r3, [r7, #308]	@ 0x134
  8002f60:	f8d7 211c 	ldr.w	r2, [r7, #284]	@ 0x11c
@@ -7649,21 +7649,20 @@ static void pull_rtcm_to_uart_handler(void *arg)
  8002f68:	bf28      	it	cs
  8002f6a:	2380      	movcs	r3, #128	@ 0x80
  8002f6c:	f8c7 3118 	str.w	r3, [r7, #280]	@ 0x118
-					rx_ptr += i;
- 8002f70:	f8d7 3134 	ldr.w	r3, [r7, #308]	@ 0x134
- 8002f74:	f8d7 2138 	ldr.w	r2, [r7, #312]	@ 0x138
- 8002f78:	4413      	add	r3, r2
- 8002f7a:	f8c7 3138 	str.w	r3, [r7, #312]	@ 0x138
-					//memcpy(data.buf, uart1_rx_buf+i, length);
-					//data.len = length;
 #if(COM_PORT_IDX == 0)
 					drv_uart_com1_send(rx_ptr, length);
 #else
 					drv_uart_com2_send(rx_ptr, length);
+ 8002f70:	f8d7 3118 	ldr.w	r3, [r7, #280]	@ 0x118
+ 8002f74:	4619      	mov	r1, r3
+ 8002f76:	f8d7 0138 	ldr.w	r0, [r7, #312]	@ 0x138
+ 8002f7a:	f001 f89b 	bl	80040b4 <drv_uart_com2_send>
+#endif
+					rx_ptr += length;
  8002f7e:	f8d7 3118 	ldr.w	r3, [r7, #280]	@ 0x118
- 8002f82:	4619      	mov	r1, r3
- 8002f84:	f8d7 0138 	ldr.w	r0, [r7, #312]	@ 0x138
- 8002f88:	f001 f894 	bl	80040b4 <drv_uart_com2_send>
+ 8002f82:	f8d7 2138 	ldr.w	r2, [r7, #312]	@ 0x138
+ 8002f86:	4413      	add	r3, r2
+ 8002f88:	f8c7 3138 	str.w	r3, [r7, #312]	@ 0x138
 					if( i== 0) RADIO_DELAY_MS(5);
  8002f8c:	f8d7 3134 	ldr.w	r3, [r7, #308]	@ 0x134
  8002f90:	2b00      	cmp	r3, #0

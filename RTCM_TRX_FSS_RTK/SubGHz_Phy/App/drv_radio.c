@@ -939,20 +939,20 @@ static void pull_rtcm_to_uart_handler(void *arg)
 				// todo 64 byte send
 #define SPLIT_RTCM_ENABLE 1
 
-#if (SPLIT_RTCM_ENABLE ==1)
+#if (SPLIT_RTCM_ENABLE == 1)
 #define SPLIT_SIZE  128
 				uint32_t rtcm_len = msg.len;
 				uint8_t  *rx_ptr = &msg.buf[0];
 				for (int i = 0; i < rtcm_len; i += SPLIT_SIZE)
-			{
+				{
 					int length = MIN(SPLIT_SIZE,rtcm_len - i);
 					rx_ptr += i;
 					//memcpy(data.buf, uart1_rx_buf+i, length);
 					//data.len = length;
 #if(COM_PORT_IDX == 0)
-					drv_uart_com1_send(rx_ptr, length);
-#else
 					drv_uart_com2_send(rx_ptr, length);
+#else
+					drv_uart_com1_send(rx_ptr, length);
 					if( i== 0) RADIO_DELAY_MS(5);
 #endif
 				}

@@ -80,7 +80,7 @@ extern "C" {
 /* USER CODE BEGIN EC */
 #define PORT_NUM  2 // 1:use com_port 2:use com and data port
 #define COM_PORT_IDX  1 // 0-uart1 1-uart2 
-#define DBG_PORT   0 //
+#define DBG_PORT 2 // 0-uart1 1-uart2 2-none
 /* USER CODE END EC */
 
 /* External variables --------------------------------------------------------*/

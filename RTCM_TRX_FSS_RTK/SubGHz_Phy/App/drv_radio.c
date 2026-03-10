@@ -937,7 +937,7 @@ static void pull_rtcm_to_uart_handler(void *arg)
 				APP_LOG(TS_ON,VLEVEL_M,"RX LEN=%d \r\n",msg.len);
 
 				// todo 64 byte send
-#define SPLIT_RTCM_ENABLE 1
+#define SPLIT_RTCM_ENABLE 0
 
 #if (SPLIT_RTCM_ENABLE == 1)
 #define SPLIT_SIZE  128
@@ -946,21 +946,24 @@ static void pull_rtcm_to_uart_handler(void *arg)
 				for (int i = 0; i < rtcm_len; i += SPLIT_SIZE)
 				{
 					int length = MIN(SPLIT_SIZE,rtcm_len - i);
-					rx_ptr += i;
+					//rx_ptr += i;
 					//memcpy(data.buf, uart1_rx_buf+i, length);
 					//data.len = length;
 #if(COM_PORT_IDX == 0)
 					drv_uart_com2_send(rx_ptr, length);
 #else
-					drv_uart_com1_send(rx_ptr, length);
-					if( i== 0) RADIO_DELAY_MS(5);
+					//drv_uart_com1_send(rx_ptr, length);
+					HAL_UART_Transmit_IT(&huart1, rx_ptr, length);
 #endif
+					rx_ptr += length;
+					if( i== 0) RADIO_DELAY_MS(5);
 				}
 #else
 				#if(COM_PORT_IDX == 0)
-					drv_uart_com1_send(msg.buf, msg.len);
-				#else
 					drv_uart_com2_send(msg.buf, msg.len);
+				#else
+					//drv_uart_com1_send(msg.buf, msg.len);
+					HAL_UART_Transmit_IT(&huart1, msg.buf, msg.len);
 				#endif
 #endif
 			}

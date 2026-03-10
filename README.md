@@ -78,4 +78,13 @@ Next step: change the LoRa firmware so the RTCM is output (and input) on LoRa UA
 
 ### pcUpdates branch:
 
+Disable the LOG traffic by:
+Change #define APP_LOG_ENABLED to 0
+Commenting the #define MW_LOG_ENABLED
+Add #define APP_PRINTF(...) in sys_app.h
+
+Output RTCM on UART0 (actually UART1) by:
+Hacking pull_rtcm_to_uart_handler so it uses HAL_UART_Transmit_IT to send the data
+(I can't yet get drv_uart_com1_send to work...)
+
 

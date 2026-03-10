@@ -842,7 +842,7 @@ int  drv_printf(const char *strFormat, ...)
   va_end(vaArgs); 
   buff_size += timestamp_size;
 
-#if (PORT_NUM==1)
+#if (PORT_NUM == 1)
 {
     if(COM_PORT_IDX == 0)
     {

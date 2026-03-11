@@ -6,7 +6,7 @@ LoRa-lora_hop.zip
 A zip of a private repo, dated February 12th 2026
 Contains a compiled binary named "RTCM_TRX_LORA_HOP_V005.bin" but the VERSION in app_common.h is actually "0.0.6"
 
-### main branch:
+### Building:
 
 Changing as little as possible:
 
@@ -18,6 +18,8 @@ with ```<locationURI>PARENT-1-PROJECT_LOC/SubGHz_Phy/App/rtcm_crc.c</locationURI
 
 Added .gitignore
 
+Corrected an error in drv_radio.c: replaced ```rx_ptr += i;``` with ```rx_ptr += length;``` (moved below the ```drv_uart_com_send```)
+
 Using STM32CubeIDE Version: 2.1.0
 
 In the project properties \ C/C++ Build \ Settings \ MCU/MPU Post build outputs
@@ -28,9 +30,9 @@ Building RTCM_TRX_FSS_RTK\STM32CubeIDE\.project produces
 LoRa-lora_hop\LoRa-lora_hop\RTCM_TRX_FSS_RTK\STM32CubeIDE\Debug\RTCM_TRX.bin / .elf / .hex / .list / .map
 
 Copied these to:
-LoRa-lora_hop\LoRa-lora_hop\RTCM_TRX_FSS_RTK\RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_0.0.6_COM-PORT-IDX-1.bin / .elf / .hex / .list / .map
+LoRa-lora_hop\LoRa-lora_hop\RTCM_TRX_FSS_RTK\RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_0.0.6_TORCH.bin / .elf / .hex / .list / .map
 
-Used STM32CubeProgrammer v2.22.0 to program the .hex onto both Torch and Facet FP
+Used STM32CubeProgrammer v2.22.0 to program the .hex onto Torch
 
 Set Torch to Base (Survey-In) and enabled LoRa (TX) at 910MHz
 
@@ -62,21 +64,23 @@ Base Mode - SIV: 39
 LoRa transmitted 3120 RTCM bytes
 ```
 
-Using an RTL-SDR.com SDR, I can see broad, hopping TX around 915MHz
+For Facet FP, we need to swap the UART pins (swap GPIOA pins 2+3 with 9+10)
 
-With Facet FP in Rover mode, with LoRa enabled (RX)
+Changing as little as possible:
 
-Using the logic analyzer, I can see commands / configuration _and_ RTCM on ESP32 UART2 / LoRa UART2
+In usart.c:
 
-I see a few invalid RTCM CRCs, but only a few. Looks like evrything is ~working
+```
+    /**USART1 GPIO Configuration
+    PA9     ------> USART1_TX
+    PA10     ------> USART1_RX
+    #PIN_SWAP
+    GPIO_InitStruct.Pin = GPIO_PIN_9|GPIO_PIN_10;
+    */
+    GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3;
+```
 
-Next step: change the LoRa firmware so the RTCM is output (and input) on LoRa UART0
-
-
-**Note:** I wasn't able to 'pair' this new 0.0.6 firmware with the usual Torch v2.0.2 LoRa firmware. Something is different, preventing the RTCM from being received...
-
-
-### pcUpdates branch:
+In main.h:
 
 Disable the LOG traffic by:
 Change #define APP_LOG_ENABLED to 0
@@ -87,4 +91,15 @@ Output RTCM on UART0 (actually UART1) by:
 Hacking pull_rtcm_to_uart_handler so it uses HAL_UART_Transmit_IT to send the data
 (I can't yet get drv_uart_com1_send to work...)
 
+```
+/* #PIN_SWAP */
+/*#define USARTx_TX_Pin GPIO_PIN_2*/
+#define USARTx_TX_Pin GPIO_PIN_9
+#define USARTx_TX_GPIO_Port GPIOA
+/* #PIN_SWAP */
+/*#define USARTx_RX_Pin GPIO_PIN_3*/
+#define USARTx_RX_Pin GPIO_PIN_10
+```
 
+Copied the build to:
+LoRa-lora_hop\LoRa-lora_hop\RTCM_TRX_FSS_RTK\RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_0.0.6_FACET-FP.bin / .elf / .hex / .list / .map

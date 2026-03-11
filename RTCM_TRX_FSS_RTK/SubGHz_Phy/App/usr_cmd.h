@@ -122,7 +122,7 @@ uint32_t user_cmd_get_bps(uint32_t com, uint8_t *cmd);
 
 uint32_t send_cmd_rsp(const uint8_t *data, const uint16_t len);
 
-void clear_cmd_buf(void);
+void clear_cmd_buf(uint32_t com);
 
 //call one time
 void init_app_cfg_to_radio();

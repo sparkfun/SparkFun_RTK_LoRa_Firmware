@@ -64,42 +64,17 @@ Base Mode - SIV: 39
 LoRa transmitted 3120 RTCM bytes
 ```
 
-For Facet FP, we need to swap the UART pins (swap GPIOA pins 2+3 with 9+10)
-
-Changing as little as possible:
-
-In usart.c:
-
-```
-    /**USART1 GPIO Configuration
-    PA9     ------> USART1_TX
-    PA10     ------> USART1_RX
-    #PIN_SWAP
-    GPIO_InitStruct.Pin = GPIO_PIN_9|GPIO_PIN_10;
-    */
-    GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3;
-```
-
-In main.h:
+For Facet FP, we want the RTCM to be on UART2
 
 Disable the LOG traffic by:
 Change #define APP_LOG_ENABLED to 0
 Commenting the #define MW_LOG_ENABLED
 Add #define APP_PRINTF(...) in sys_app.h
+In usart_if.c: add better support in vcom_Init etc. for DBG_PORT == 0 / 1 / 2
 
 Output RTCM on UART0 (actually UART1) by:
 Hacking pull_rtcm_to_uart_handler so it uses HAL_UART_Transmit_IT to send the data
 (I can't yet get drv_uart_com1_send to work...)
-
-```
-/* #PIN_SWAP */
-/*#define USARTx_TX_Pin GPIO_PIN_2*/
-#define USARTx_TX_Pin GPIO_PIN_9
-#define USARTx_TX_GPIO_Port GPIOA
-/* #PIN_SWAP */
-/*#define USARTx_RX_Pin GPIO_PIN_3*/
-#define USARTx_RX_Pin GPIO_PIN_10
-```
 
 Copied the build to:
 LoRa-lora_hop\LoRa-lora_hop\RTCM_TRX_FSS_RTK\RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_0.0.6_FACET-FP.bin / .elf / .hex / .list / .map

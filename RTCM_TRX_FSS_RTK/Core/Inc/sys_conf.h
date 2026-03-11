@@ -41,7 +41,7 @@ extern "C" {
 /**
   * @brief  Verbose level for all trace logs
   */
-#define VERBOSE_LEVEL                        VLEVEL_M
+#define VERBOSE_LEVEL                        VLEVEL_OFF
 
 /**
   * @brief Enable trace logs
@@ -69,7 +69,7 @@ extern "C" {
   * @brief Enable/Disable MCU Debugger pins (dbg serial wires)
   * @note  by HW serial wires are ON by default, need to put them OFF to save power
   */
-#define DEBUGGER_ENABLED                     1
+#define DEBUGGER_ENABLED                     0
 
 /**
   * @brief Disable Low Power mode
@@ -78,7 +78,7 @@ extern "C" {
 #define LOW_POWER_DISABLE                    0
 
 /* USER CODE BEGIN EC */
-#define PORT_NUM  2 // 1:use com_port 2:use com and data port
+#define PORT_NUM 2 // 1:use com_port 2:use com and data port
 #define COM_PORT_IDX  1 // 0-uart1 1-uart2 
 #define DBG_PORT 2 // 0-uart1 1-uart2 2-none
 /* USER CODE END EC */

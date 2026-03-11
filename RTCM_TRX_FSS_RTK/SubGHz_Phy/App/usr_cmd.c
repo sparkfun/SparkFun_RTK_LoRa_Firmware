@@ -72,6 +72,10 @@ static CMD_DECODE s_cmd_decode[2] = {0};
 
 uint32_t send_cmd_rsp(const uint8_t *data, const uint16_t len)
 {
+	uint32_t ret1 = drv_uart_com1_send(data, len);
+	uint32_t ret2 = drv_uart_com2_send(data, len);
+	return (ret1 > ret2 ? ret1 : ret2);
+
 	if (cmd_com == 0)
 	{
 		return drv_uart_com1_send(data, len);
@@ -362,8 +366,12 @@ uint32_t user_cmd_decode(uint8_t com, uint8_t *data, uint8_t len, uint8_t **act)
 		}
 		else
 		{
+		#if(PORT_NUM == 2)
+			APP_LOG(TS_ON,VLEVEL_M," ignoring %d \r\n", len);
+		#else
 			APP_LOG(TS_ON,VLEVEL_M,"trans=%d \r\n", len);
 			pub_rtcm(data, len);
+		#endif
 		}
 		return 0;
 	}
@@ -483,31 +491,31 @@ static int user_cmd_cb(uint32_t com, uint8_t *buff, uint32_t len, uint8_t *rbuff
 	return ret;
 }
 
-void clear_cmd_buf(void)
+void clear_cmd_buf(uint32_t com)
 {
-	memset(s_cmd_decode[0].buff, 0, s_cmd_decode[0].maxlen);
-	s_cmd_decode[0].state = SEARCH;
+	memset(s_cmd_decode[com].buff, 0, s_cmd_decode[com].maxlen);
+	s_cmd_decode[com].state = SEARCH;
 }
 
-static uint8_t cmd_buf[CMD_RSP_MAX_LEN + 1];
-static uint8_t rsp_buf[CMD_RSP_MAX_LEN + 1];
+static uint8_t cmd_cmd_buf[CMD_RSP_MAX_LEN + 1];
+static uint8_t cmd_rsp_buf[CMD_RSP_MAX_LEN + 1];
 int cmd_read_cb(uint8_t *data, const uint16_t len)
 {
 	int ret = 0;
 	int cmd_len = 0;
 	uint8_t *act = NULL;
 	APP_LOG(TS_ON,VLEVEL_M,"cmd_com=%d len=%d\r\n",cmd_com,len);
-	if (cmd_com >=0 )
+	if (cmd_com >= 0)
 	{
 		// APP_LOG(TS_ON,VLEVEL_M,"call dec \r\n");
 		cmd_len = user_cmd_decode(cmd_com, data, len, &act);
 		if (cmd_len > 0 && cmd_len <= CMD_RSP_MAX_LEN)
 		{
-			memset(cmd_buf, 0, CMD_RSP_MAX_LEN);
-			memset(rsp_buf, 0, CMD_RSP_MAX_LEN);
+			memset(cmd_cmd_buf, 0, CMD_RSP_MAX_LEN);
+			memset(cmd_rsp_buf, 0, CMD_RSP_MAX_LEN);
 
-			memcpy(cmd_buf, act, cmd_len);
-			user_cmd_cb(cmd_com, cmd_buf, cmd_len, rsp_buf);
+			memcpy(cmd_cmd_buf, act, cmd_len);
+			user_cmd_cb(cmd_com, cmd_cmd_buf, cmd_len, cmd_rsp_buf);
 		}
 	}
 

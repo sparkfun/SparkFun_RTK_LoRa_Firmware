@@ -124,14 +124,17 @@ void StartDefaultTask(void *argument)
   /* USER CODE BEGIN StartDefaultTask */
 
   user_cmd_init(COM_PORT_IDX, cmd_buf, 1024);
- 
-  #if(COM_PORT_IDX==0)
+
   drv_uart_com1_init();
-  drv_uart_com1_read_set_cb(cmd_read_cb);
-  #else
   drv_uart_com2_init();
+
+#if(COM_PORT_IDX==0)
+  drv_uart_com1_read_set_cb(cmd_read_cb);
+#else
   drv_uart_com2_read_set_cb(cmd_read_cb);
-  #endif
+#endif
+
+  send_cmd_rsp("HELLO WORLD", strlen("HELLO WORLD"));
 
   APP_LOG(TS_ON,VLEVEL_M,"---before radio---Free heap memory: %d bytes------\r\n", xPortGetFreeHeapSize());
     /* init code for SubGHz_Phy */

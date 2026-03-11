@@ -8,6 +8,7 @@
 #include "app_common.h"
 #include "stm32wlxx_hal.h"
 #include "radio.h"
+#include "drv_radio.h"
 #include "drv_uart.h"
 #include "sys_app.h"
 #include "usart.h"
@@ -28,8 +29,8 @@
 #define TX_BUFF_SIZE (1024)
 
 
-#define CMD_PORT 0x01
-#define DATA_PORT 0x02
+// #define CMD_PORT 0x01
+// #define DATA_PORT 0x02
 
 typedef enum _DRV_EVT
 {
@@ -55,8 +56,8 @@ static QueueHandle_t uart2Queue = NULL; //  com2
 static EventGroupHandle_t send_uart1_event;
 static EventGroupHandle_t send_uart2_event;
 
-static drv_uart_read_cb_t cmd_read_cb_func = NULL;
-static drv_uart_read_cb_t data_read_cb_func = NULL;
+static drv_uart_read_cb_t uart1_read_cb_func = NULL;
+static drv_uart_read_cb_t uart2_read_cb_func = NULL;
 
 #define UART1_SEND_CPLT (1 << 0)
 #define UART2_SEND_CPLT (1 << 1)
@@ -516,25 +517,24 @@ static void drv_uart_event_task(void *pvParameters)
     DRV_TRANS_DATA_TYPE event;
     switch (port)
     {
-    case CMD_PORT:
+    case 1:
     {
         pQueue = &uart1Queue;
-        read_cb_func = &cmd_read_cb_func;
+        read_cb_func = &uart1_read_cb_func;
         APP_TPRINTF("uart[%d] event task running in %d:\r\n", port, DRV_UART_CMD_EVENT_TASK_PRI);
         break;
     }
-    case DATA_PORT:
+    case 2:
     {
         pQueue = &uart2Queue;
-        read_cb_func = &data_read_cb_func;
-        // read_cb_func = &cmd_read_cb;
+        read_cb_func = &uart2_read_cb_func;
         APP_TPRINTF("uart[%d] event task running in %d:\r\n", port, DRV_UART_DATA_EVENT_TASK_PRI);
         break;
     }
 
     default:
     {
-        APP_TPRINTF("Unknow port[%d],%s", port, pcTaskGetName(NULL));
+        APP_TPRINTF("Unknown port[%d],%s", port, pcTaskGetName(NULL));
         vTaskDelete(NULL);
         return;
     }
@@ -551,12 +551,22 @@ static void drv_uart_event_task(void *pvParameters)
             case DRV_EVT_RX_DONE:
             {
                 APP_TPRINTF( "[UART %d DATA]: %d\r\n", port, event.len);
+                // Check if the read callback has been defined
                 if (NULL == *read_cb_func)
                 {
-                    APP_TPRINTF(" [UART %d ]dop %d bytes\r\n", port, event.len);
+                    // No read callback defined
+                    //APP_TPRINTF(" [UART %d ]drop %d bytes\r\n", port, event.len);
+
+                    // If we have two ports, let's assume this data arrived on the
+                    // 'data' port and send it to the radio
+                #if(PORT_NUM == 2)
+                    APP_LOG(TS_ON,VLEVEL_M,"trans=%d \r\n", event.len);
+                    pub_rtcm(event.buf, event.len);
+                #endif
                 }
                 else
                 {
+                    // If the data length is > zero, send the data to the callback
                     if (event.len > 0)
                     {
                         (*read_cb_func)(event.buf, event.len);
@@ -568,15 +578,16 @@ static void drv_uart_event_task(void *pvParameters)
             case DRV_EVT_TX_EMPTY:
             case DRV_EVT_TX_DONE:
             {
-
-                break;
+                ;
             }
+            break;
+
             // Others
             default:
             {
                 APP_TPRINTF("uart %d event type: %d\r\n", port, event.evt_id);
-                break;
             }
+            break;
             }
         }
     }
@@ -632,7 +643,7 @@ void com2_send_DMA(uint8_t *p_data, uint16_t size)
     /* USER CODE END vcom_Trace_DMA_2 */
 }
 
-static void com1_init()
+void com1_init()
 {
     MX_DMA_Init();
     MX_USART1_UART_Init();
@@ -682,36 +693,45 @@ void com1_send_DMA(uint8_t *p_data, uint16_t size)
 
 int drv_uart_com1_init(void)
 {
-    const int cmdPort = CMD_PORT;
-    BaseType_t xret;
+    //const int cmdPort = CMD_PORT;
+    static const int port = 1;
+    //BaseType_t xret;
+
     uart1Queue = xQueueCreate(UART_QUEUE_NUM, DRV_TRANS_ITEM_SIZE);
     send_uart1_event = xEventGroupCreate();
 
+    com1_deinit();
     com1_init();
     xEventGroupSetBits(send_uart1_event, UART1_SEND_CPLT);
-    xret = xTaskCreate(drv_uart_event_task, "uart_com1", (1024 * 3), (void *)&cmdPort, DRV_UART_CMD_EVENT_TASK_PRI,
+    //xret = xTaskCreate(drv_uart_event_task, "uart_com1", (1024 * 3), (void *)&cmdPort, DRV_UART_CMD_EVENT_TASK_PRI,
+    //                   NULL);
+    xTaskCreate(drv_uart_event_task, "uart_com1", (1024 * 3), (void *)&port, DRV_UART_CMD_EVENT_TASK_PRI,
                        NULL);
-
-
     HAL_UART_RegisterCallback(&huart1, HAL_UART_TX_COMPLETE_CB_ID,
                               UART_TxCpltCallback);
     HAL_UART_RegisterRxEventCallback(&huart1, UART_RxEventCallback);
     HAL_UART_RegisterCallback(&huart1, HAL_UART_ERROR_CB_ID, UART_ErrorCallback);
 
     start_uart_rx_irq(&huart1);
+    
     APP_TPRINTF( "--- cmd init ---Free heap memory: %d bytes------\r\n", xPortGetFreeHeapSize());
     return 0;
 }
 
 int drv_uart_com2_init(void)
 {
-    const int dataPort = DATA_PORT;
+    //const int dataPort = DATA_PORT;
+    static const int port = 2;
+
     uart2Queue = xQueueCreate(UART_QUEUE_NUM, DRV_TRANS_ITEM_SIZE);
     send_uart2_event = xEventGroupCreate();
     
+    com2_deinit();
     com2_init();
     xEventGroupSetBits(send_uart2_event, UART2_SEND_CPLT);
-    xTaskCreate(drv_uart_event_task, "uart_com2", 1024 * 3, (void *)&dataPort, DRV_UART_DATA_EVENT_TASK_PRI,
+    //xTaskCreate(drv_uart_event_task, "uart_com2", 1024 * 3, (void *)&dataPort, DRV_UART_DATA_EVENT_TASK_PRI,
+    //            NULL); 
+    xTaskCreate(drv_uart_event_task, "uart_com2", 1024 * 3, (void *)&port, DRV_UART_DATA_EVENT_TASK_PRI,
                 NULL); 
     HAL_UART_RegisterCallback(&huart2, HAL_UART_TX_COMPLETE_CB_ID,
                               UART_TxCpltCallback);
@@ -741,7 +761,7 @@ int drv_uart_com2_clear_rx(void)
 
 int drv_uart_com1_read_set_cb(const drv_uart_read_cb_t cb)
 {
-    cmd_read_cb_func = cb;
+    uart1_read_cb_func = cb;
     return 0;
 }
 
@@ -769,9 +789,7 @@ int drv_uart_com1_send(const uint8_t *data, const uint16_t len)
 
 int drv_uart_com2_read_set_cb(const drv_uart_read_cb_t cb)
 {
-    // APP_PRINTF("drv_uart_com2_read_set_cb=%p\r\n",(void*)&cb);
-    data_read_cb_func = cb;
-    // data_read_cb_func = cmd_read_cb;
+    uart2_read_cb_func = cb;
     return 0;
 }
 
@@ -825,13 +843,13 @@ static void TimestampNow(uint8_t *buff, uint16_t *size)
 
 #define LOG_BUF_SIZE (256)
 static uint8_t v_buf[LOG_BUF_SIZE];
-int  drv_printf(const char *strFormat, ...)
+int drv_printf(const char *strFormat, ...)
 {
   va_list vaArgs;
   
   uint16_t timestamp_size = 0u;
 //  uint16_t writepos = 0;
-  uint16_t len =0;;
+//  uint16_t len =0;;
   uint16_t buff_size;
 
   TimestampNow(v_buf,&timestamp_size);
@@ -842,21 +860,7 @@ int  drv_printf(const char *strFormat, ...)
   va_end(vaArgs); 
   buff_size += timestamp_size;
 
-#if (PORT_NUM == 1)
-{
-    if(COM_PORT_IDX == 0)
-    {
-        drv_uart_com1_send((const uint8_t *)v_buf, len);
-    }
-    else{
-        drv_uart_com2_send((const uint8_t *)v_buf, len);
-    }
-    
-}
-#else
-{
-    send_cmd_rsp(v_buf,buff_size);
-}
-#endif  
-   return  buff_size;
+  send_cmd_rsp(v_buf,buff_size);
+
+  return  buff_size;
 }

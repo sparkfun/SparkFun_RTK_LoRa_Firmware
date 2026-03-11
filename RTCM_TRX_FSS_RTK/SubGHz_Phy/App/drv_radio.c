@@ -826,7 +826,7 @@ static void pull_rtcm_to_uart_handler(void *arg)
 	{
 		if ((s_radio_attr.inited == 0x00) || s_radio_attr.switching || (s_radio_attr.mode != RADIO_MODE_RX))
 		{
-			if(uxQueueSpacesAvailable (pullMsgHandler) != UHF_RX_QUEUE_NUM)
+			if(uxQueueSpacesAvailable(pullMsgHandler) != UHF_RX_QUEUE_NUM)
 			{
 				xQueueReset(pullMsgHandler);
 			}
@@ -937,33 +937,46 @@ static void pull_rtcm_to_uart_handler(void *arg)
 				APP_LOG(TS_ON,VLEVEL_M,"RX LEN=%d \r\n",msg.len);
 
 				// todo 64 byte send
-#define SPLIT_RTCM_ENABLE 0
+#define SPLIT_RTCM_ENABLE 1
 
 #if (SPLIT_RTCM_ENABLE == 1)
-#define SPLIT_SIZE  128
-				uint32_t rtcm_len = msg.len;
-				uint8_t  *rx_ptr = &msg.buf[0];
-				for (int i = 0; i < rtcm_len; i += SPLIT_SIZE)
+				const uint32_t SPLIT_SIZE = 128;
+				for (uint32_t i = 0; i < msg.len; i += SPLIT_SIZE)
 				{
-					int length = MIN(SPLIT_SIZE,rtcm_len - i);
-					//rx_ptr += i;
-					//memcpy(data.buf, uart1_rx_buf+i, length);
-					//data.len = length;
-#if(COM_PORT_IDX == 0)
+					uint32_t length = MIN(SPLIT_SIZE,msg.len - i);
+					uint8_t *rx_ptr = &msg.buf[i];
+				#if(PORT_NUM == 2)
+				#if(COM_PORT_IDX == 0)
+					// If we have two ports, send the data to the 'data' uart
 					drv_uart_com2_send(rx_ptr, length);
-#else
-					//drv_uart_com1_send(rx_ptr, length);
-					HAL_UART_Transmit_IT(&huart1, rx_ptr, length);
-#endif
-					rx_ptr += length;
-					if( i== 0) RADIO_DELAY_MS(5);
+				#else
+					drv_uart_com1_send(rx_ptr, length);
+				#endif
+				#else
+				#if(COM_PORT_IDX == 0)
+					// If we only have have one port, send the data to the 'command' uart
+					drv_uart_com1_send(rx_ptr, length);
+				#else
+					drv_uart_com2_send(rx_ptr, length);
+				#endif
+				#endif
+					if (i == 0) RADIO_DELAY_MS(5);
 				}
 #else
+				#if(PORT_NUM == 2)
 				#if(COM_PORT_IDX == 0)
+					// If we have two ports, send the data to the 'data' uart
 					drv_uart_com2_send(msg.buf, msg.len);
 				#else
-					//drv_uart_com1_send(msg.buf, msg.len);
-					HAL_UART_Transmit_IT(&huart1, msg.buf, msg.len);
+					drv_uart_com1_send(msg.buf, msg.len);
+				#endif
+				#else
+				#if(COM_PORT_IDX == 0)
+					// If we only have have one port, send the data to the 'command' uart
+					drv_uart_com1_send(msg.buf, msg.len);
+				#else
+					drv_uart_com2_send(msg.buf, msg.len);
+				#endif
 				#endif
 #endif
 			}
@@ -1069,7 +1082,7 @@ static void pub_rtcm_msg_handle(void *arg)
 	{
 		if ((s_radio_attr.inited == 0x00) || s_radio_attr.switching || (s_radio_attr.mode != RADIO_MODE_TX))
 		{
-			if(uxQueueSpacesAvailable (pubMsgHandler) != UHF_TX_QUEUE_NUM)
+			if(uxQueueSpacesAvailable(pubMsgHandler) != UHF_TX_QUEUE_NUM)
 			{
 				xQueueReset(pubMsgHandler);
 				cfifo_reset(&tx_fifo);

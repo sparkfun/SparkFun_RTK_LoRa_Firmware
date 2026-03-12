@@ -125,6 +125,8 @@ void StartDefaultTask(void *argument)
 
   user_cmd_init(COM_PORT_IDX, cmd_buf, 1024);
 
+  // Note: these create the instances of drv_uart_event_task using xTaskCreate
+  // But they won't run until vTaskStartScheduler is called in osKernelStart
   drv_uart_com1_init();
   drv_uart_com2_init();
 
@@ -133,8 +135,6 @@ void StartDefaultTask(void *argument)
 #else
   drv_uart_com2_read_set_cb(cmd_read_cb);
 #endif
-
-  send_cmd_rsp("HELLO WORLD", strlen("HELLO WORLD"));
 
   APP_LOG(TS_ON,VLEVEL_M,"---before radio---Free heap memory: %d bytes------\r\n", xPortGetFreeHeapSize());
     /* init code for SubGHz_Phy */

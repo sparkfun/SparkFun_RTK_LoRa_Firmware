@@ -35,6 +35,7 @@ extern DMA_HandleTypeDef hdma_usart1_tx;
   * @brief UART handle
   */
 extern UART_HandleTypeDef huart1;
+extern UART_HandleTypeDef huart2;
 
 /**
   * @brief buffer to receive 1 character
@@ -189,6 +190,7 @@ UTIL_ADV_TRACE_Status_t vcom_ReceiveInit(void (*RxCb)(uint8_t *rxChar, uint16_t 
   /* USER CODE BEGIN vcom_ReceiveInit_1 */
 
   /* USER CODE END vcom_ReceiveInit_1 */
+ #if(DBG_PORT == 0)
   UART_WakeUpTypeDef WakeUpSelection;
 
   /*record call back*/
@@ -197,7 +199,6 @@ UTIL_ADV_TRACE_Status_t vcom_ReceiveInit(void (*RxCb)(uint8_t *rxChar, uint16_t 
   /*Set wakeUp event on start bit*/
   WakeUpSelection.WakeUpEvent = UART_WAKEUP_ON_STARTBIT;
 
- #if(DBG_PORT == 0)
   HAL_UARTEx_StopModeWakeUpSourceConfig(&huart1, WakeUpSelection);
 
   /* Make sure that no UART transfer is on-going */
@@ -215,6 +216,14 @@ UTIL_ADV_TRACE_Status_t vcom_ReceiveInit(void (*RxCb)(uint8_t *rxChar, uint16_t 
   /*Start LPUART receive on IT*/
   HAL_UART_Receive_IT(&huart1, &charRx, 1);
 #elif(DBG_PORT == 1)
+  UART_WakeUpTypeDef WakeUpSelection;
+
+  /*record call back*/
+  RxCpltCallback = RxCb;
+
+  /*Set wakeUp event on start bit*/
+  WakeUpSelection.WakeUpEvent = UART_WAKEUP_ON_STARTBIT;
+
   HAL_UARTEx_StopModeWakeUpSourceConfig(&huart2, WakeUpSelection);
 
   /* Make sure that no UART transfer is on-going */

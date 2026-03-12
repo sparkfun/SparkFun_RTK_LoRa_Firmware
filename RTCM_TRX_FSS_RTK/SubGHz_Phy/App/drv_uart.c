@@ -250,7 +250,7 @@ static uint8_t uart2_rx_buf[RX_DMA_SIZE+1] ;
 // static uint32_t uart2_offset = 0;
 static HAL_StatusTypeDef start_uart_rx_irq(UART_HandleTypeDef *huart);
 #define MAX_SEND_WAIT 50
-const uint32_t BPS_MS_WAIT = ((100) / 1000) * 115200 + 1; // 100ms
+const uint32_t BPS_MS_WAIT = ((100 * 115200) / 1000) + 1; // 100ms
 static void UART_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size)
 {
     DRV_TRANS_DATA_TYPE data;
@@ -270,7 +270,7 @@ static void UART_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size)
     APP_TPRINTF("rx=%d evt=%x\r\n", size,huart->RxEventType);
     if (rx_len > 0)
     {
-        data.len = rx_len;
+        //data.len = rx_len;
         if (huart->Instance == USART1)
         {
         	// not handle half dma
@@ -370,8 +370,8 @@ static void UART_TxCpltCallback(UART_HandleTypeDef *huart)
 static HAL_StatusTypeDef start_uart_rx_irq(UART_HandleTypeDef *huart)
 {
     HAL_StatusTypeDef ret = HAL_ERROR;
-    // HAL_UART_ReceiverTimeout_Config(huart, BPS_MS_WAIT);
-    // HAL_UART_EnableReceiverTimeout(huart);
+    //HAL_UART_ReceiverTimeout_Config(huart, BPS_MS_WAIT);
+    //HAL_UART_EnableReceiverTimeout(huart);
 #if (UART_DMA_IDLE_MODE==0)
     if (huart->Instance == USART1)
     {
@@ -521,14 +521,16 @@ static void drv_uart_event_task(void *pvParameters)
     {
         pQueue = &uart1Queue;
         read_cb_func = &uart1_read_cb_func;
-        APP_TPRINTF("uart[%d] event task running in %d:\r\n", port, DRV_UART_CMD_EVENT_TASK_PRI);
+        APP_TPRINTF("uart[%d] event task running prio %d:\r\n", port,
+                    DRV_UART_EVENT_TASK_PRI - (COM_PORT_IDX == 0 ? 0 : 1));
         break;
     }
     case 2:
     {
         pQueue = &uart2Queue;
         read_cb_func = &uart2_read_cb_func;
-        APP_TPRINTF("uart[%d] event task running in %d:\r\n", port, DRV_UART_DATA_EVENT_TASK_PRI);
+        APP_TPRINTF("uart[%d] event task running prio %d:\r\n", port,
+                    DRV_UART_EVENT_TASK_PRI - (COM_PORT_IDX == 1 ? 0 : 1));
         break;
     }
 
@@ -543,7 +545,7 @@ static void drv_uart_event_task(void *pvParameters)
     while (1)
     {
         // Waiting for UART event.
-        if (xQueueReceive(*pQueue, (void *)&event, (portTickType)portMAX_DELAY))
+        if (pdPASS == xQueueReceive(*pQueue, (void *)&event, (portTickType)portMAX_DELAY))
         {
             switch (event.evt_id)
             {
@@ -557,11 +559,14 @@ static void drv_uart_event_task(void *pvParameters)
                     // No read callback defined
                     //APP_TPRINTF(" [UART %d ]drop %d bytes\r\n", port, event.len);
 
-                    // If we have two ports, let's assume this data arrived on the
-                    // 'data' port and send it to the radio
                 #if(PORT_NUM == 2)
-                    APP_LOG(TS_ON,VLEVEL_M,"trans=%d \r\n", event.len);
-                    pub_rtcm(event.buf, event.len);
+                    // If we have two ports, let's assume this data arrived on the
+                    // 'data' port and send it to the radio if in TRNS TX mode
+                    if ((event.len > 0) && (usr_cmd_is_trans_tx()))
+                    {
+                        APP_LOG(TS_ON,VLEVEL_M,"trans=%d \r\n", event.len);
+                        pub_rtcm(event.buf, event.len);
+                    }
                 #endif
                 }
                 else
@@ -590,6 +595,7 @@ static void drv_uart_event_task(void *pvParameters)
             break;
             }
         }
+        //taskYIELD();
     }
 
     vTaskDelete(NULL);
@@ -691,22 +697,23 @@ void com1_send_DMA(uint8_t *p_data, uint16_t size)
     /* USER CODE END vcom_Trace_DMA_2 */
 }
 
+static const int port1 = 1;
 int drv_uart_com1_init(void)
 {
     //const int cmdPort = CMD_PORT;
-    static const int port = 1;
     //BaseType_t xret;
 
     uart1Queue = xQueueCreate(UART_QUEUE_NUM, DRV_TRANS_ITEM_SIZE);
     send_uart1_event = xEventGroupCreate();
 
-    com1_deinit();
     com1_init();
     xEventGroupSetBits(send_uart1_event, UART1_SEND_CPLT);
     //xret = xTaskCreate(drv_uart_event_task, "uart_com1", (1024 * 3), (void *)&cmdPort, DRV_UART_CMD_EVENT_TASK_PRI,
     //                   NULL);
-    xTaskCreate(drv_uart_event_task, "uart_com1", (1024 * 3), (void *)&port, DRV_UART_CMD_EVENT_TASK_PRI,
-                       NULL);
+    // TODO: figure out why xTaskCreate stops UART1 from sending...
+    // xTaskCreate(drv_uart_event_task, "uart_com1", 1024 * 4, (void *)&port1,
+    //             DRV_UART_EVENT_TASK_PRI - (COM_PORT_IDX == 0 ? 0 : 1),
+    //             NULL);
     HAL_UART_RegisterCallback(&huart1, HAL_UART_TX_COMPLETE_CB_ID,
                               UART_TxCpltCallback);
     HAL_UART_RegisterRxEventCallback(&huart1, UART_RxEventCallback);
@@ -718,20 +725,20 @@ int drv_uart_com1_init(void)
     return 0;
 }
 
+static const int port2 = 2;
 int drv_uart_com2_init(void)
 {
     //const int dataPort = DATA_PORT;
-    static const int port = 2;
 
     uart2Queue = xQueueCreate(UART_QUEUE_NUM, DRV_TRANS_ITEM_SIZE);
     send_uart2_event = xEventGroupCreate();
     
-    com2_deinit();
     com2_init();
     xEventGroupSetBits(send_uart2_event, UART2_SEND_CPLT);
     //xTaskCreate(drv_uart_event_task, "uart_com2", 1024 * 3, (void *)&dataPort, DRV_UART_DATA_EVENT_TASK_PRI,
     //            NULL); 
-    xTaskCreate(drv_uart_event_task, "uart_com2", 1024 * 3, (void *)&port, DRV_UART_DATA_EVENT_TASK_PRI,
+    xTaskCreate(drv_uart_event_task, "uart_com2", 1024 * 4, (void *)&port2,
+                DRV_UART_EVENT_TASK_PRI - (COM_PORT_IDX == 1 ? 0 : 1),
                 NULL); 
     HAL_UART_RegisterCallback(&huart2, HAL_UART_TX_COMPLETE_CB_ID,
                               UART_TxCpltCallback);

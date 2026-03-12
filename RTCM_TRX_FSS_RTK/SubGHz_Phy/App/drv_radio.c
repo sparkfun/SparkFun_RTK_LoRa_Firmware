@@ -300,9 +300,9 @@ static void OnRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t LoraS
 	}
 	last_rx_rssi = rssi;
 	last_rx_cfo = LoraSnr_FskCfo;
-	data.len = size;
+	data.len = MIN(size, MAX_APP_BUFFER_SIZE);
 	data.evt_id = RADIO_EVT_RCV_DONE;
-	memcpy(data.buf, payload, size);
+	memcpy(data.buf, payload, MIN(size, MAX_APP_BUFFER_SIZE));
 	if(s_radio_attr.fhss == 0x00) // fix freq
 	{
 		Radio.Rx(RX_TIMEOUT_VALUE);
@@ -937,9 +937,10 @@ static void pull_rtcm_to_uart_handler(void *arg)
 				APP_LOG(TS_ON,VLEVEL_M,"RX LEN=%d \r\n",msg.len);
 
 				// todo 64 byte send
-#define SPLIT_RTCM_ENABLE 1
+#define SPLIT_RTCM_ENABLE 0
 
 #if (SPLIT_RTCM_ENABLE == 1)
+				// MAX_APP_BUFFER_SIZE is 255, so msg.len will always be <= 255
 				const uint32_t SPLIT_SIZE = 128;
 				for (uint32_t i = 0; i < msg.len; i += SPLIT_SIZE)
 				{
@@ -951,6 +952,7 @@ static void pull_rtcm_to_uart_handler(void *arg)
 					drv_uart_com2_send(rx_ptr, length);
 				#else
 					drv_uart_com1_send(rx_ptr, length);
+					//HAL_UART_Transmit_IT(&huart1, rx_ptr, length);
 				#endif
 				#else
 				#if(COM_PORT_IDX == 0)
@@ -960,7 +962,7 @@ static void pull_rtcm_to_uart_handler(void *arg)
 					drv_uart_com2_send(rx_ptr, length);
 				#endif
 				#endif
-					if (i == 0) RADIO_DELAY_MS(5);
+					//if (i == 0) RADIO_DELAY_MS(5);
 				}
 #else
 				#if(PORT_NUM == 2)
@@ -969,6 +971,7 @@ static void pull_rtcm_to_uart_handler(void *arg)
 					drv_uart_com2_send(msg.buf, msg.len);
 				#else
 					drv_uart_com1_send(msg.buf, msg.len);
+					//HAL_UART_Transmit_IT(&huart1, msg.buf, msg.len);
 				#endif
 				#else
 				#if(COM_PORT_IDX == 0)
@@ -1228,7 +1231,7 @@ static void pub_rtcm_msg_handle(void *arg)
 				idx++;
 
 			}
-			else if((false == xret) && (fifo_sz > 0 && fifo_sz < MAX_APP_BUFFER_SIZE))
+			else if((pdFAIL == xret) && (fifo_sz > 0 && fifo_sz < MAX_APP_BUFFER_SIZE))
 			{
 #if(FHSS_HOP_SUP == 1)
 				if(s_radio_attr.fhss ==1)
@@ -1260,11 +1263,12 @@ static void pub_rtcm_msg_handle(void *arg)
 				APP_LOG(TS_ON,VLEVEL_M, "3.last_send_idx:%d==len:%d\r\n", send_idx, fifo_sz)
 				OS_DELAY_MS(80);
 				idx++;
-				}
 			}
-		else {
-				Radio.Sleep();
-				OS_DELAY_MS(100);
+		}
+		else
+		{
+			Radio.Sleep();
+			OS_DELAY_MS(100);
 #define TEST_LORA_RFx 1
 #ifdef TEST_LORA_RF
 			memset(data_buffer,0xcc,255);

@@ -2,6 +2,7 @@
 #define _USR_CMD_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef uint32_t (*USER_CMD_CB)(uint32_t com, uint8_t *cmd);
 
@@ -123,6 +124,8 @@ uint32_t user_cmd_get_bps(uint32_t com, uint8_t *cmd);
 uint32_t send_cmd_rsp(const uint8_t *data, const uint16_t len);
 
 void clear_cmd_buf(uint32_t com);
+
+bool usr_cmd_is_trans_tx(void);
 
 //call one time
 void init_app_cfg_to_radio();

@@ -72,9 +72,9 @@ static CMD_DECODE s_cmd_decode[2] = {0};
 
 uint32_t send_cmd_rsp(const uint8_t *data, const uint16_t len)
 {
-	uint32_t ret1 = drv_uart_com1_send(data, len);
-	uint32_t ret2 = drv_uart_com2_send(data, len);
-	return (ret1 > ret2 ? ret1 : ret2);
+	//uint32_t ret1 = drv_uart_com1_send(data, len);
+	//uint32_t ret2 = drv_uart_com2_send(data, len);
+	//return (ret1 > ret2 ? ret1 : ret2);
 
 	if (cmd_com == 0)
 	{
@@ -90,7 +90,7 @@ uint32_t user_cmd_enter_trans(uint32_t com, uint8_t *cmd)
 {
 	uint32_t ret;
 	char *data = (char *)cmd;
-	s_cmd_decode[cmd_com].state = TRNS;
+	s_cmd_decode[com].state = TRNS;
 	// TODO:need stop trans rtcm
 	sprintf(data, "%s", "AT+TRANS\r\n\r\nOK\r\n");
 
@@ -520,4 +520,18 @@ int cmd_read_cb(uint8_t *data, const uint16_t len)
 	}
 
 	return ret;
+}
+
+bool usr_cmd_is_trans_tx(void)
+{
+	bool isTransTx = false;
+	if (s_cmd_decode[cmd_com].state == TRNS)
+	{
+		RADIO_ATTR *m_radio_param = radio_get_cur_param();
+		if (m_radio_param->mode == RADIO_MODE_TX)
+		{
+			isTransTx = true;
+		}
+	}
+	return isTransTx;
 }

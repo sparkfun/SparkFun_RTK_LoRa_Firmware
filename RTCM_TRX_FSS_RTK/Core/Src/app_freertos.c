@@ -130,6 +130,9 @@ void StartDefaultTask(void *argument)
   drv_uart_com1_init();
   drv_uart_com2_init();
 
+  // Set the command read callback on the COM_PORT_IDX uart only
+  // Data received on the 'command' port will be passed to cmd_read_cb by drv_uart_event_task
+  // Data on the 'data' port will be passed directly to pub_rtcm by drv_uart_event_task
 #if !defined(COM_PORT_IDX)
 #error COM_PORT_IDX not defined
 #elif(COM_PORT_IDX==0)

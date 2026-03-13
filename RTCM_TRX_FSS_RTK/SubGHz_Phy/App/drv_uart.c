@@ -712,8 +712,9 @@ int drv_uart_com1_init(void)
     xEventGroupSetBits(send_uart1_event, UART1_SEND_CPLT);
     //xret = xTaskCreate(drv_uart_event_task, "uart_com1", (1024 * 3), (void *)&cmdPort, DRV_UART_CMD_EVENT_TASK_PRI,
     //                   NULL);
-    xTaskCreate(drv_uart_event_task, "uart_com1", 1024 * 4, (void *)&port1,
-                DRV_UART_EVENT_TASK_PRI /* - (COM_PORT_IDX == 0 ? 0 : 1) */,
+    // Be careful with the stack allocation. Allocating 3K to both tasks causes badness...
+    xTaskCreate(drv_uart_event_task, "uart_com1", 1024 * 2, (void *)&port1,
+                DRV_UART_EVENT_TASK_PRI /*- (COM_PORT_IDX == 0 ? 0 : 1)*/,
                 NULL);
     HAL_UART_RegisterCallback(&huart1, HAL_UART_TX_COMPLETE_CB_ID,
                               UART_TxCpltCallback);
@@ -738,8 +739,9 @@ int drv_uart_com2_init(void)
     xEventGroupSetBits(send_uart2_event, UART2_SEND_CPLT);
     //xTaskCreate(drv_uart_event_task, "uart_com2", 1024 * 3, (void *)&dataPort, DRV_UART_DATA_EVENT_TASK_PRI,
     //            NULL); 
-    xTaskCreate(drv_uart_event_task, "uart_com2", 1024 * 4, (void *)&port2,
-                DRV_UART_EVENT_TASK_PRI /* - (COM_PORT_IDX == 1 ? 0 : 1) */,
+    // Be careful with the stack allocation. Allocating 3K to both tasks causes badness...
+    xTaskCreate(drv_uart_event_task, "uart_com2", 1024 * 2, (void *)&port2,
+                DRV_UART_EVENT_TASK_PRI /*- (COM_PORT_IDX == 1 ? 0 : 1)*/,
                 NULL); 
     HAL_UART_RegisterCallback(&huart2, HAL_UART_TX_COMPLETE_CB_ID,
                               UART_TxCpltCallback);

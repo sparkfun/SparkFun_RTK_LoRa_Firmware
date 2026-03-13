@@ -72,9 +72,9 @@ static CMD_DECODE s_cmd_decode[2] = {0};
 
 uint32_t send_cmd_rsp(const uint8_t *data, const uint16_t len)
 {
-	//uint32_t ret1 = drv_uart_com1_send(data, len);
-	//uint32_t ret2 = drv_uart_com2_send(data, len);
-	//return (ret1 > ret2 ? ret1 : ret2);
+	// uint32_t ret1 = drv_uart_com1_send(data, len);
+	// uint32_t ret2 = drv_uart_com2_send(data, len);
+	// return (ret1 > ret2 ? ret1 : ret2);
 
 	if (cmd_com == 0)
 	{

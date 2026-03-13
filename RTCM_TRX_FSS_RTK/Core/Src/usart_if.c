@@ -277,10 +277,10 @@ void vcom_Resume(void)
   /* USER CODE END vcom_Resume_2 */
 }
 
+#if defined(DBG_PORT)
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
   /* USER CODE BEGIN HAL_UART_TxCpltCallback_1 */
-#if defined(DBG_PORT) && (DBG_PORT == 0)
   /* buffer transmission complete*/
   if (huart->Instance == USART1)
   {
@@ -288,19 +288,16 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
   }
   /* USER CODE END HAL_UART_TxCpltCallback_1 */
   /* USER CODE BEGIN HAL_UART_TxCpltCallback_2 */
-#elif defined(DBG_PORT) && (DBG_PORT == 1)
   if (huart->Instance == USART2)
   {
     TxCpltCallback(NULL);
   }
-#endif
   /* USER CODE END HAL_UART_TxCpltCallback_2 */
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
   /* USER CODE BEGIN HAL_UART_RxCpltCallback_1 */
-#if defined(DBG_PORT) && (DBG_PORT == 0)
   if (huart->Instance == USART1)
   {
     if ((NULL != RxCpltCallback) && (HAL_UART_ERROR_NONE == huart->ErrorCode))
@@ -311,7 +308,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   }
   /* USER CODE END HAL_UART_RxCpltCallback_1 */
   /* USER CODE BEGIN HAL_UART_RxCpltCallback_2 */
-#elif defined(DBG_PORT) && (DBG_PORT == 1)
   if (huart->Instance == USART2)
   {
     if ((NULL != RxCpltCallback) && (HAL_UART_ERROR_NONE == huart->ErrorCode))
@@ -320,9 +316,9 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     }
     HAL_UART_Receive_IT(huart, &charRx, 1);
   }
-#endif
   /* USER CODE END HAL_UART_RxCpltCallback_2 */
 }
+#endif
 
 /* USER CODE BEGIN EF */
 

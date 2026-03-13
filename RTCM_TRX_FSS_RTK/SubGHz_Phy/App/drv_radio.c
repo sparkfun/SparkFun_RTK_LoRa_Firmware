@@ -937,7 +937,7 @@ static void pull_rtcm_to_uart_handler(void *arg)
 				APP_LOG(TS_ON,VLEVEL_M,"RX LEN=%d \r\n",msg.len);
 
 				// todo 64 byte send
-#define SPLIT_RTCM_ENABLE 0
+#define SPLIT_RTCM_ENABLE 1
 
 #if (SPLIT_RTCM_ENABLE == 1)
 				// MAX_APP_BUFFER_SIZE is 255, so msg.len will always be <= 255

@@ -30,6 +30,7 @@
   * @brief DMA handle
   */
 extern DMA_HandleTypeDef hdma_usart1_tx;
+extern DMA_HandleTypeDef hdma_usart2_tx;
 
 /**
   * @brief UART handle
@@ -73,6 +74,7 @@ const UTIL_ADV_TRACE_Driver_s UTIL_TraceDriver =
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+#if defined(DBG_PORT)
 /**
   * @brief  TX complete callback
   * @return none
@@ -86,6 +88,7 @@ static void (*TxCpltCallback)(void *);
   * @return none
   */
 static void (*RxCpltCallback)(uint8_t *rxChar, uint16_t size, uint8_t error);
+#endif
 
 /* USER CODE BEGIN PV */
 
@@ -102,29 +105,31 @@ static void (*RxCpltCallback)(uint8_t *rxChar, uint16_t size, uint8_t error);
 UTIL_ADV_TRACE_Status_t vcom_Init(void (*cb)(void *))
 {
   /* USER CODE BEGIN vcom_Init_1 */
-#if(DBG_PORT == 0)
-  /* USER CODE END vcom_Init_1 */
+#if !defined(DBG_PORT)
+#warning DBG_PORT not defined. vcom / trace not available
+#elif(DBG_PORT == 0)
   TxCpltCallback = cb;
   MX_DMA_Init();
   MX_USART1_UART_Init();
   LL_EXTI_EnableIT_0_31(LL_EXTI_LINE_26);
-  return UTIL_ADV_TRACE_OK;
+  /* USER CODE END vcom_Init_1 */
   /* USER CODE BEGIN vcom_Init_2 */
 #elif(DBG_PORT == 1)
   TxCpltCallback = cb;
   MX_DMA_Init();
   MX_USART2_UART_Init();
   LL_EXTI_EnableIT_0_31(LL_EXTI_LINE_27);
-  return UTIL_ADV_TRACE_OK;
+#else
+#error Invalid DBG_PORT
 #endif
+  return UTIL_ADV_TRACE_OK;
   /* USER CODE END vcom_Init_2 */
 }
 
 UTIL_ADV_TRACE_Status_t vcom_DeInit(void)
 {
   /* USER CODE BEGIN vcom_DeInit_1 */
-#if(DBG_PORT == 0)
-  /* USER CODE END vcom_DeInit_1 */
+#if defined(DBG_PORT) && (DBG_PORT == 0)
   /* ##-1- Reset peripherals ################################################## */
   __HAL_RCC_USART1_FORCE_RESET();
   __HAL_RCC_USART1_RELEASE_RESET();
@@ -135,11 +140,9 @@ UTIL_ADV_TRACE_Status_t vcom_DeInit(void)
   /* ##-3- Disable the NVIC for DMA ########################################### */
   /* USER CODE BEGIN 1 */
   HAL_NVIC_DisableIRQ(DMA1_Channel5_IRQn);
-
-  return UTIL_ADV_TRACE_OK;
-  /* USER CODE END 1 */
+  /* USER CODE END vcom_DeInit_1 */
   /* USER CODE BEGIN vcom_DeInit_2 */
-#elif(DBG_PORT == 1)
+#elif defined(DBG_PORT) && (DBG_PORT == 1)
   /* ##-1- Reset peripherals ################################################## */
   __HAL_RCC_USART2_FORCE_RESET();
   __HAL_RCC_USART2_RELEASE_RESET();
@@ -150,20 +153,19 @@ UTIL_ADV_TRACE_Status_t vcom_DeInit(void)
   /* ##-3- Disable the NVIC for DMA ########################################### */
   /* USER CODE BEGIN 1 */
   HAL_NVIC_DisableIRQ(DMA1_Channel1_IRQn);
-
-  return UTIL_ADV_TRACE_OK;
 #endif
+  return UTIL_ADV_TRACE_OK;
   /* USER CODE END vcom_DeInit_2 */
 }
 
 void vcom_Trace(uint8_t *p_data, uint16_t size)
 {
   /* USER CODE BEGIN vcom_Trace_1 */
-#if(DBG_PORT == 0)
-  /* USER CODE END vcom_Trace_1 */
+#if defined(DBG_PORT) && (DBG_PORT == 0)
   HAL_UART_Transmit(&huart1, p_data, size, 1000);
+  /* USER CODE END vcom_Trace_1 */
   /* USER CODE BEGIN vcom_Trace_2 */
-#elif(DBG_PORT == 1)
+#elif defined(DBG_PORT) && (DBG_PORT == 1)
   HAL_UART_Transmit(&huart2, p_data, size, 1000);
 #endif
   /* USER CODE END vcom_Trace_2 */
@@ -172,25 +174,21 @@ void vcom_Trace(uint8_t *p_data, uint16_t size)
 UTIL_ADV_TRACE_Status_t vcom_Trace_DMA(uint8_t *p_data, uint16_t size)
 {
   /* USER CODE BEGIN vcom_Trace_DMA_1 */
- #if(DBG_PORT == 0)
-  /* USER CODE END vcom_Trace_DMA_1 */
+#if defined(DBG_PORT) && (DBG_PORT == 0)
   HAL_UART_Transmit_DMA(&huart1, p_data, size);
-  return UTIL_ADV_TRACE_OK;
-  /* USER CODE BEGIN vcom_Trace_DMA_2 */
-#elif(DBG_PORT == 1)
   /* USER CODE END vcom_Trace_DMA_1 */
+  /* USER CODE BEGIN vcom_Trace_DMA_2 */
+#elif defined(DBG_PORT) && (DBG_PORT == 1)
   HAL_UART_Transmit_DMA(&huart2, p_data, size);
-  return UTIL_ADV_TRACE_OK;
 #endif
+  return UTIL_ADV_TRACE_OK;
   /* USER CODE END vcom_Trace_DMA_2 */
 }
 
 UTIL_ADV_TRACE_Status_t vcom_ReceiveInit(void (*RxCb)(uint8_t *rxChar, uint16_t size, uint8_t error))
 {
   /* USER CODE BEGIN vcom_ReceiveInit_1 */
-
-  /* USER CODE END vcom_ReceiveInit_1 */
- #if(DBG_PORT == 0)
+#if defined(DBG_PORT) && (DBG_PORT == 0)
   UART_WakeUpTypeDef WakeUpSelection;
 
   /*record call back*/
@@ -215,7 +213,9 @@ UTIL_ADV_TRACE_Status_t vcom_ReceiveInit(void (*RxCb)(uint8_t *rxChar, uint16_t 
 
   /*Start LPUART receive on IT*/
   HAL_UART_Receive_IT(&huart1, &charRx, 1);
-#elif(DBG_PORT == 1)
+  /* USER CODE END vcom_ReceiveInit_1 */
+  /* USER CODE BEGIN vcom_ReceiveInit_2 */
+#elif defined(DBG_PORT) && (DBG_PORT == 1)
   UART_WakeUpTypeDef WakeUpSelection;
 
   /*record call back*/
@@ -241,18 +241,14 @@ UTIL_ADV_TRACE_Status_t vcom_ReceiveInit(void (*RxCb)(uint8_t *rxChar, uint16_t 
   /*Start LPUART receive on IT*/
   HAL_UART_Receive_IT(&huart2, &charRx, 1);
 #endif
-
   return UTIL_ADV_TRACE_OK;
-  /* USER CODE BEGIN vcom_ReceiveInit_2 */
-
   /* USER CODE END vcom_ReceiveInit_2 */
 }
 
 void vcom_Resume(void)
 {
   /* USER CODE BEGIN vcom_Resume_1 */
-#if(DBG_PORT == 0)
-  /* USER CODE END vcom_Resume_1 */
+#if defined(DBG_PORT) && (DBG_PORT == 0)
   /*to re-enable lost UART settings*/
   if (HAL_UART_Init(&huart1) != HAL_OK)
   {
@@ -264,8 +260,9 @@ void vcom_Resume(void)
   {
     Error_Handler();
   }
+  /* USER CODE END vcom_Resume_1 */
   /* USER CODE BEGIN vcom_Resume_2 */
-#elif(DBG_PORT == 1)
+#elif defined(DBG_PORT) && (DBG_PORT == 1)
   if (HAL_UART_Init(&huart2) != HAL_OK)
   {
     Error_Handler();
@@ -283,15 +280,15 @@ void vcom_Resume(void)
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
   /* USER CODE BEGIN HAL_UART_TxCpltCallback_1 */
-#if(DBG_PORT == 0)
-  /* USER CODE END HAL_UART_TxCpltCallback_1 */
+#if defined(DBG_PORT) && (DBG_PORT == 0)
   /* buffer transmission complete*/
   if (huart->Instance == USART1)
   {
     TxCpltCallback(NULL);
   }
+  /* USER CODE END HAL_UART_TxCpltCallback_1 */
   /* USER CODE BEGIN HAL_UART_TxCpltCallback_2 */
-#elif(DBG_PORT == 1)
+#elif defined(DBG_PORT) && (DBG_PORT == 1)
   if (huart->Instance == USART2)
   {
     TxCpltCallback(NULL);
@@ -303,8 +300,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
   /* USER CODE BEGIN HAL_UART_RxCpltCallback_1 */
-#if(DBG_PORT == 0)
-  /* USER CODE END HAL_UART_RxCpltCallback_1 */
+#if defined(DBG_PORT) && (DBG_PORT == 0)
   if (huart->Instance == USART1)
   {
     if ((NULL != RxCpltCallback) && (HAL_UART_ERROR_NONE == huart->ErrorCode))
@@ -313,8 +309,9 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     }
     HAL_UART_Receive_IT(huart, &charRx, 1);
   }
+  /* USER CODE END HAL_UART_RxCpltCallback_1 */
   /* USER CODE BEGIN HAL_UART_RxCpltCallback_2 */
-#elif(DBG_PORT == 1)
+#elif defined(DBG_PORT) && (DBG_PORT == 1)
   if (huart->Instance == USART2)
   {
     if ((NULL != RxCpltCallback) && (HAL_UART_ERROR_NONE == huart->ErrorCode))

@@ -78,9 +78,14 @@ extern "C" {
 #define LOW_POWER_DISABLE                    0
 
 /* USER CODE BEGIN EC */
-#define PORT_NUM 2 // 1:use com_port 2:use com and data port
-#define COM_PORT_IDX  1 // 0-uart1 1-uart2 
-#define DBG_PORT 2 // 0-uart1 1-uart2 2-none
+
+// PORTNUM: Number of ports: 1:use com_port; 2:use com and data port
+#define PORT_NUM                             2
+// COM_PORT_IDX: selects the command port uart: 0:uart1; 1:uart2 
+#define COM_PORT_IDX                         1
+// DBG_PORT: selects the debug port uart: 0:uart1; 1:uart2; Comment to disable
+//#define DBG_PORT                             0
+
 /* USER CODE END EC */
 
 /* External variables --------------------------------------------------------*/

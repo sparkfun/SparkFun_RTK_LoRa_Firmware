@@ -366,7 +366,9 @@ uint32_t user_cmd_decode(uint8_t com, uint8_t *data, uint8_t len, uint8_t **act)
 		}
 		else
 		{
-		#if(PORT_NUM == 2)
+		#if !defined(PORT_NUM)
+		#error PORT_NUM not defined
+		#elif(PORT_NUM == 2)
 			APP_LOG(TS_ON,VLEVEL_M," ignoring %d \r\n", len);
 		#else
 			APP_LOG(TS_ON,VLEVEL_M,"trans=%d \r\n", len);

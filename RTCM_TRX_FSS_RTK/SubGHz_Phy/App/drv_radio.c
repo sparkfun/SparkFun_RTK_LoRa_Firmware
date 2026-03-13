@@ -946,15 +946,22 @@ static void pull_rtcm_to_uart_handler(void *arg)
 				{
 					uint32_t length = MIN(SPLIT_SIZE,msg.len - i);
 					uint8_t *rx_ptr = &msg.buf[i];
-				#if(PORT_NUM == 2)
-				#if(COM_PORT_IDX == 0)
+
+				#if !defined(PORT_NUM)
+				#error PORT_NUM not defined
+				#elif(PORT_NUM == 2)
+				#if !defined(COM_PORT_IDX)
+				#error COM_PORT_IDX not defined
+				#elif(COM_PORT_IDX == 0)
 					// If we have two ports, send the data to the 'data' uart
 					drv_uart_com2_send(rx_ptr, length);
-				#else
+				#elif(COM_PORT_IDX == 1)
 					drv_uart_com1_send(rx_ptr, length);
 					//HAL_UART_Transmit_IT(&huart1, rx_ptr, length);
-				#endif
 				#else
+				#error Invalid COM_PORT_IDX
+				#endif
+				#elif(PORT_NUM == 1)
 				#if(COM_PORT_IDX == 0)
 					// If we only have have one port, send the data to the 'command' uart
 					drv_uart_com1_send(rx_ptr, length);
@@ -962,7 +969,8 @@ static void pull_rtcm_to_uart_handler(void *arg)
 					drv_uart_com2_send(rx_ptr, length);
 				#endif
 				#endif
-					//if (i == 0) RADIO_DELAY_MS(5);
+
+					if (i == 0) RADIO_DELAY_MS(5);
 				}
 #else
 				#if(PORT_NUM == 2)

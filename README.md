@@ -18,7 +18,7 @@ with ```<locationURI>PARENT-1-PROJECT_LOC/SubGHz_Phy/App/rtcm_crc.c</locationURI
 
 Added .gitignore
 
-Corrected an error in drv_radio.c: replaced ```rx_ptr += i;``` with ```rx_ptr += length;``` (moved below the ```drv_uart_com_send```)
+Corrected an error in drv_radio.c: replaced ```rx_ptr += i;``` with ```uint8_t *rx_ptr = &msg.buf[i];```
 
 Using STM32CubeIDE Version: 2.1.0
 
@@ -70,11 +70,16 @@ Disable the LOG traffic by:
 Change #define APP_LOG_ENABLED to 0
 Commenting the #define MW_LOG_ENABLED
 Add #define APP_PRINTF(...) in sys_app.h
-In usart_if.c: add better support in vcom_Init etc. for DBG_PORT == 0 / 1 / 2
+
+In usart_if.c: add better support in vcom_Init etc. for DBG_PORT == 0 / 1
+Remember to #include "sys_conf.h" where needed (usart_if.c)
+Comment DBG_PORT to disable vcom / trace driver and avoid UART conflict
 
 Output RTCM on UART0 (actually UART1) by:
 Hacking pull_rtcm_to_uart_handler so it uses HAL_UART_Transmit_IT to send the data
 (I can't yet get drv_uart_com1_send to work...)
+
+VERSION "3.0.0"
 
 Copied the build to:
 LoRa-lora_hop\LoRa-lora_hop\RTCM_TRX_FSS_RTK\RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_0.0.6_FACET-FP.bin / .elf / .hex / .list / .map

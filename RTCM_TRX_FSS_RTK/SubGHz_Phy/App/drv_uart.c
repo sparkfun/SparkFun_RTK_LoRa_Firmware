@@ -559,7 +559,9 @@ static void drv_uart_event_task(void *pvParameters)
                     // No read callback defined
                     //APP_TPRINTF(" [UART %d ]drop %d bytes\r\n", port, event.len);
 
-                #if(PORT_NUM == 2)
+                #if !defined(PORT_NUM)
+                #error PORT_NUM not defined
+                #elif(PORT_NUM == 2)
                     // If we have two ports, let's assume this data arrived on the
                     // 'data' port and send it to the radio if in TRNS TX mode
                     if ((event.len > 0) && (usr_cmd_is_trans_tx()))
@@ -697,9 +699,9 @@ void com1_send_DMA(uint8_t *p_data, uint16_t size)
     /* USER CODE END vcom_Trace_DMA_2 */
 }
 
-static const int port1 = 1;
 int drv_uart_com1_init(void)
 {
+    static const int port1 = 1;
     //const int cmdPort = CMD_PORT;
     //BaseType_t xret;
 
@@ -710,10 +712,9 @@ int drv_uart_com1_init(void)
     xEventGroupSetBits(send_uart1_event, UART1_SEND_CPLT);
     //xret = xTaskCreate(drv_uart_event_task, "uart_com1", (1024 * 3), (void *)&cmdPort, DRV_UART_CMD_EVENT_TASK_PRI,
     //                   NULL);
-    // TODO: figure out why xTaskCreate stops UART1 from sending...
-    // xTaskCreate(drv_uart_event_task, "uart_com1", 1024 * 4, (void *)&port1,
-    //             DRV_UART_EVENT_TASK_PRI - (COM_PORT_IDX == 0 ? 0 : 1),
-    //             NULL);
+    xTaskCreate(drv_uart_event_task, "uart_com1", 1024 * 4, (void *)&port1,
+                DRV_UART_EVENT_TASK_PRI /* - (COM_PORT_IDX == 0 ? 0 : 1) */,
+                NULL);
     HAL_UART_RegisterCallback(&huart1, HAL_UART_TX_COMPLETE_CB_ID,
                               UART_TxCpltCallback);
     HAL_UART_RegisterRxEventCallback(&huart1, UART_RxEventCallback);
@@ -725,9 +726,9 @@ int drv_uart_com1_init(void)
     return 0;
 }
 
-static const int port2 = 2;
 int drv_uart_com2_init(void)
 {
+    static const int port2 = 2;
     //const int dataPort = DATA_PORT;
 
     uart2Queue = xQueueCreate(UART_QUEUE_NUM, DRV_TRANS_ITEM_SIZE);
@@ -738,7 +739,7 @@ int drv_uart_com2_init(void)
     //xTaskCreate(drv_uart_event_task, "uart_com2", 1024 * 3, (void *)&dataPort, DRV_UART_DATA_EVENT_TASK_PRI,
     //            NULL); 
     xTaskCreate(drv_uart_event_task, "uart_com2", 1024 * 4, (void *)&port2,
-                DRV_UART_EVENT_TASK_PRI - (COM_PORT_IDX == 1 ? 0 : 1),
+                DRV_UART_EVENT_TASK_PRI /* - (COM_PORT_IDX == 1 ? 0 : 1) */,
                 NULL); 
     HAL_UART_RegisterCallback(&huart2, HAL_UART_TX_COMPLETE_CB_ID,
                               UART_TxCpltCallback);

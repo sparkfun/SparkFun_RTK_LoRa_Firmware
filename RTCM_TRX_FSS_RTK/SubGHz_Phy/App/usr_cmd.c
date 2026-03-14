@@ -354,9 +354,10 @@ uint32_t user_cmd_decode(uint8_t com, uint8_t *data, uint8_t len, uint8_t **act)
 	char *pbuff = (char *)p_cmd_decode->buff;
 	char *head = NULL;
 	// APP_LOG(TS_ON,VLEVEL_M,"enter dec \r\n");
-	if (p_cmd_decode->state == TRNS)
+
+	if (p_cmd_decode->state == TRNS) // If we are in TRANSfer
 	{
-		// only check +++
+		// Check for +++ (EXIT_TRANS)
 		if (strstr((char *)data, EXIT_TRANS) != NULL)
 		{
 			APP_LOG(TS_ON,VLEVEL_M,"quit \r\n");
@@ -364,7 +365,7 @@ uint32_t user_cmd_decode(uint8_t com, uint8_t *data, uint8_t len, uint8_t **act)
 			memset(pbuff, 0, p_cmd_decode->maxlen);
 			user_cmd_exit_trans(com, (uint8_t*)pbuff);
 		}
-		else
+		else // This is not +++, so send the data to the radio
 		{
 		#if !defined(PORT_NUM)
 		#error PORT_NUM not defined
@@ -380,6 +381,7 @@ uint32_t user_cmd_decode(uint8_t com, uint8_t *data, uint8_t len, uint8_t **act)
 
 	// APP_LOG(TS_ON,VLEVEL_M,"boot pin set [%d] \r\n", is_boot_pin_set());
 
+	// We are not in TRANSfer, so fully decode the command
 	if ((len + p_cmd_decode->offset) > p_cmd_decode->maxlen)
 	{
 		// APP_LOG(TS_ON,VLEVEL_M,"drop %s.\r\n",data);
@@ -513,6 +515,7 @@ int cmd_read_cb(uint8_t *data, const uint16_t len)
 		cmd_len = user_cmd_decode(cmd_com, data, len, &act);
 		if (cmd_len > 0 && cmd_len <= CMD_RSP_MAX_LEN)
 		{
+			// We decoded a command, so call its callback
 			memset(cmd_cmd_buf, 0, CMD_RSP_MAX_LEN);
 			memset(cmd_rsp_buf, 0, CMD_RSP_MAX_LEN);
 

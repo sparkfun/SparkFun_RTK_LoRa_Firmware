@@ -553,6 +553,7 @@ static void drv_uart_event_task(void *pvParameters)
             case DRV_EVT_RX_DONE:
             {
                 APP_TPRINTF( "[UART %d DATA]: %d\r\n", port, event.len);
+                
                 // Check if the read callback has been defined
                 if (NULL == *read_cb_func)
                 {
@@ -573,6 +574,7 @@ static void drv_uart_event_task(void *pvParameters)
                 }
                 else
                 {
+                    // We have a command read callback
                     // If the data length is > zero, send the data to the callback
                     if (event.len > 0)
                     {

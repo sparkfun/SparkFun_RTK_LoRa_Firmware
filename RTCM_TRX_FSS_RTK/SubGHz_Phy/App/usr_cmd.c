@@ -99,12 +99,18 @@ uint32_t user_cmd_enter_trans(uint32_t com, uint8_t *cmd)
 	s_cmd_decode[com].state = TRNS;
 	// TODO:need stop trans rtcm
 	sprintf(data, "%s", "AT+TRANS\r\n\r\nOK\r\n");
+	ret = strlen(data);
+
+	// On Torch, it looks like the response gets gatecrashed by radio_param_cfg
+	// I see "level: 10dbm" but not "AT+TRANS OK"
+	// Send it now to make sure it gets sent
+	// We should not need to do this. TODO: figure out why the response isn't sent
+	send_cmd_rsp((const uint8_t *)data, ret);
 
 	radio_param_cfg();
 
 	start_rtcm_trans();
 
-	ret = strlen(data);
 	APP_LOG(TS_ON,VLEVEL_M,"enter trans\r\n");
 	return ret;
 }

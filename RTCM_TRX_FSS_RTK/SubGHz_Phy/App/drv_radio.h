@@ -73,6 +73,7 @@ typedef struct __radio_comm_cfg
 	uint32_t power_level;
 	uint32_t crc_num;
 	uint32_t fhss;
+	uint32_t dprt; // 0:UART1 1:UART2
 } RADIO_ATTR;
 
 typedef struct __system_param

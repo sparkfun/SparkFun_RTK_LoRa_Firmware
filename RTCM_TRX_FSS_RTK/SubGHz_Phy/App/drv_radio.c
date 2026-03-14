@@ -936,6 +936,8 @@ static void pull_rtcm_to_uart_handler(void *arg)
 				flash_led();
 				APP_LOG(TS_ON,VLEVEL_M,"RX LEN=%d \r\n",msg.len);
 
+				RADIO_ATTR *m_radio_param = radio_get_cur_param();
+
 				// todo 64 byte send
 #define SPLIT_RTCM_ENABLE 1
 
@@ -947,48 +949,20 @@ static void pull_rtcm_to_uart_handler(void *arg)
 					uint32_t length = MIN(SPLIT_SIZE,msg.len - i);
 					uint8_t *rx_ptr = &msg.buf[i];
 
-				#if !defined(PORT_NUM)
-				#error PORT_NUM not defined
-				#elif(PORT_NUM == 2)
-				#if !defined(COM_PORT_IDX)
-				#error COM_PORT_IDX not defined
-				#elif(COM_PORT_IDX == 0)
-					// If we have two ports, send the data to the 'data' uart
-					drv_uart_com2_send(rx_ptr, length);
-				#elif(COM_PORT_IDX == 1)
-					drv_uart_com1_send(rx_ptr, length);
-					//HAL_UART_Transmit_IT(&huart1, rx_ptr, length);
-				#else
-				#error Invalid COM_PORT_IDX
-				#endif
-				#elif(PORT_NUM == 1)
-				#if(COM_PORT_IDX == 0)
-					// If we only have have one port, send the data to the 'command' uart
-					drv_uart_com1_send(rx_ptr, length);
-				#else
-					drv_uart_com2_send(rx_ptr, length);
-				#endif
-				#endif
+					// Send this to the data port
+					if (m_radio_param->dprt == 0)
+						drv_uart_com1_send(rx_ptr, length);
+					else
+						drv_uart_com2_send(rx_ptr, length);
 
 					if (i == 0) RADIO_DELAY_MS(5);
 				}
 #else
-				#if(PORT_NUM == 2)
-				#if(COM_PORT_IDX == 0)
-					// If we have two ports, send the data to the 'data' uart
-					drv_uart_com2_send(msg.buf, msg.len);
-				#else
+				// Send this to the data port
+				if (m_radio_param->dprt == 0)
 					drv_uart_com1_send(msg.buf, msg.len);
-					//HAL_UART_Transmit_IT(&huart1, msg.buf, msg.len);
-				#endif
-				#else
-				#if(COM_PORT_IDX == 0)
-					// If we only have have one port, send the data to the 'command' uart
-					drv_uart_com1_send(msg.buf, msg.len);
-				#else
+				else
 					drv_uart_com2_send(msg.buf, msg.len);
-				#endif
-				#endif
 #endif
 			}
 		} // wait lora packet in pdMS_TO_TICKS(200)
@@ -1370,7 +1344,8 @@ uint32_t radio_init(void)
 	s_radio_attr.bandwith[1] = 250;
 	s_radio_attr.bps = 38400;
 	s_radio_attr.prot[1] = s_radio_attr.prot[0] = PROT_LORA;
-	s_radio_attr.power_level = 10; //defaut 10 dbm
+	s_radio_attr.power_level = 10; //default 10 dbm
+	s_radio_attr.dprt = COM_PORT_IDX; // default 1:UART2 for Torch
 
 	//APP_LOG(TS_ON,VLEVEL_M,"attr size=%d \r\n",sizeof(s_radio_attr_flash));
 	STMFLASH_Read(STM32_FLASH_APPCFG_BASE,(u64*)&s_radio_attr_flash,sizeof(s_radio_attr_flash)/8);
@@ -1392,6 +1367,7 @@ uint32_t radio_init(void)
 		s_radio_attr.prot[0] =s_radio_attr_flash.prot[0];
 		s_radio_attr.prot[1] = s_radio_attr_flash.prot[1];
 		s_radio_attr.power_level = s_radio_attr_flash.power_level;
+		s_radio_attr.dprt = s_radio_attr_flash.dprt;
 		APP_LOG(TS_ON,VLEVEL_M,"mode=%d bps = %d, freq =%d PROT=%d\r\n",s_radio_attr_flash.mode,s_radio_attr_flash.bps,
 				s_radio_attr_flash.freq[0],s_radio_attr_flash.prot[0]);
 	}

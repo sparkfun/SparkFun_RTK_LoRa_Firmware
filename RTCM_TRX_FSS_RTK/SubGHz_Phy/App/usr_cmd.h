@@ -32,6 +32,8 @@ typedef uint32_t (*USER_CMD_CB)(uint32_t com, uint8_t *cmd);
 
 #define CMD_AT_PROT_FORMAT "AT+PROT=%s\r\n" // TRANSP  TT450 TRIMARK
 
+#define CMD_AT_DPRT_FORMAT "AT+DPRT=%d\r\n" // Data Port: 0:UART1 (Torch) 1:UART2 (Facet FP)
+
 #define CMD_AT_ASK "?"
 
 #define CMD_STR_ATV ("AT+V")
@@ -42,6 +44,7 @@ typedef uint32_t (*USER_CMD_CB)(uint32_t com, uint8_t *cmd);
 #define CMD_STR_AT_MODE ("AT+MODE")
 #define CMD_STR_AT_BPS ("AT+BPS") // 19200 38400 62500
 #define CMD_STR_ENTER_TRANS ("AT+TRANS")
+#define CMD_STR_AT_DPRT ("AT+DPRT")
 
 #define CMD_REQ_MAX_LEN 64
 #define CMD_RSP_MAX_LEN 128
@@ -66,6 +69,7 @@ typedef enum
 	USR_CMD_ID_AT_MODE,
 	USR_CMD_ID_AT_T,
 	USR_CMD_ID_AT_BPS,
+	USR_CMD_ID_AT_DPRT,
 	USR_CMD_ID_END
 } USR_CMD_ID;
 
@@ -120,6 +124,8 @@ uint32_t user_cmd_set_frqband(uint32_t com, uint8_t *cmd);
 uint32_t user_cmd_get_frqband(uint32_t com, uint8_t *cmd);
 uint32_t user_cmd_set_bps(uint32_t com, uint8_t *cmd);
 uint32_t user_cmd_get_bps(uint32_t com, uint8_t *cmd);
+
+uint32_t user_cmd_set_dprt(uint32_t com, uint8_t *cmd);
 
 uint32_t send_cmd_rsp(const uint8_t *data, const uint16_t len);
 

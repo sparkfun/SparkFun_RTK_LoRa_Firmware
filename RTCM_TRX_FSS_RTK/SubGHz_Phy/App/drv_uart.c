@@ -522,7 +522,7 @@ static void drv_uart_event_task(void *pvParameters)
         pQueue = &uart1Queue;
         read_cb_func = &uart1_read_cb_func;
         APP_TPRINTF("uart[%d] event task running prio %d:\r\n", port,
-                    DRV_UART_EVENT_TASK_PRI - (COM_PORT_IDX == 0 ? 0 : 1));
+                    DRV_UART_EVENT_TASK_PRI /* - (COM_PORT_IDX == 0 ? 0 : 1) */);
         break;
     }
     case 2:
@@ -530,7 +530,7 @@ static void drv_uart_event_task(void *pvParameters)
         pQueue = &uart2Queue;
         read_cb_func = &uart2_read_cb_func;
         APP_TPRINTF("uart[%d] event task running prio %d:\r\n", port,
-                    DRV_UART_EVENT_TASK_PRI - (COM_PORT_IDX == 1 ? 0 : 1));
+                    DRV_UART_EVENT_TASK_PRI /* - (COM_PORT_IDX == 1 ? 0 : 1) */);
         break;
     }
 
@@ -553,24 +553,22 @@ static void drv_uart_event_task(void *pvParameters)
             case DRV_EVT_RX_DONE:
             {
                 APP_TPRINTF( "[UART %d DATA]: %d\r\n", port, event.len);
-                
+
                 // Check if the read callback has been defined
                 if (NULL == *read_cb_func)
                 {
                     // No read callback defined
-                    //APP_TPRINTF(" [UART %d ]drop %d bytes\r\n", port, event.len);
-
-                #if !defined(PORT_NUM)
-                #error PORT_NUM not defined
-                #elif(PORT_NUM == 2)
-                    // If we have two ports, let's assume this data arrived on the
-                    // 'data' port and send it to the radio if in TRNS TX mode
+                    // This data must have arrived on the 'data' port
+                    // Send it to the radio if in TRNS TX mode
                     if ((event.len > 0) && (usr_cmd_is_trans_tx()))
                     {
                         APP_LOG(TS_ON,VLEVEL_M,"trans=%d \r\n", event.len);
                         pub_rtcm(event.buf, event.len);
                     }
-                #endif
+                    else
+                    {
+                        APP_TPRINTF(" [UART %d ]drop %d bytes\r\n", port, event.len);
+                    }
                 }
                 else
                 {
@@ -716,7 +714,7 @@ int drv_uart_com1_init(void)
     //                   NULL);
     // Be careful with the stack allocation. Allocating 3K to both tasks causes badness...
     xTaskCreate(drv_uart_event_task, "uart_com1", 1024 * 2, (void *)&port1,
-                DRV_UART_EVENT_TASK_PRI /*- (COM_PORT_IDX == 0 ? 0 : 1)*/,
+                DRV_UART_EVENT_TASK_PRI /* - (COM_PORT_IDX == 0 ? 0 : 1) */,
                 NULL);
     HAL_UART_RegisterCallback(&huart1, HAL_UART_TX_COMPLETE_CB_ID,
                               UART_TxCpltCallback);
@@ -743,7 +741,7 @@ int drv_uart_com2_init(void)
     //            NULL); 
     // Be careful with the stack allocation. Allocating 3K to both tasks causes badness...
     xTaskCreate(drv_uart_event_task, "uart_com2", 1024 * 2, (void *)&port2,
-                DRV_UART_EVENT_TASK_PRI /*- (COM_PORT_IDX == 1 ? 0 : 1)*/,
+                DRV_UART_EVENT_TASK_PRI /* - (COM_PORT_IDX == 1 ? 0 : 1) */,
                 NULL); 
     HAL_UART_RegisterCallback(&huart2, HAL_UART_TX_COMPLETE_CB_ID,
                               UART_TxCpltCallback);

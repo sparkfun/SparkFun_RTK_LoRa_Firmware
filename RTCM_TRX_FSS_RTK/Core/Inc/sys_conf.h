@@ -81,18 +81,16 @@ extern "C" {
 
 /*
   TORCH:
-    PORT_NUM     1 : UART2 is used for both configuration and RTCM (after TRANS, until +++)
     COM_PORT_IDX 1 : UART2 is the command port (UART1 is only used for firmware updates)
     DBG_PORT       : is best commented out, but can be set to 0 (UART1) if desired for debug
+    DPRT defaults to COM_PORT_IDX as the combined command and data port
 
   FACET FP:
-    PORT_NUM     2 : UART2 is used for configuration, UART1 carries the RTCM to/from the GNSS
     COM_PORT_IDX 1 : UART2 is the command port
-    DBG_PORT       : must be commented out (unless you want to send debug to the GNSS?)
+    DBG_PORT       : must be commented out (unless you want to send debug to the GNSS pins?)
+    Send "AT+DPRT=0" to select UART1 as the data port
 */
 
-// PORTNUM: Number of ports: 1:use com_port; 2:use com and data ports
-#define PORT_NUM                             1
 // COM_PORT_IDX: selects the command port uart: 0:uart1; 1:uart2 
 #define COM_PORT_IDX                         1
 // DBG_PORT: selects the debug port uart: 0:uart1; 1:uart2; Comment to disable

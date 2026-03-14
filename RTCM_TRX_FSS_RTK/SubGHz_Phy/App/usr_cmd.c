@@ -65,6 +65,12 @@ USR_CMD_LIST s_usr_cmd_list[USR_CMD_ID_END] =
 			.cmd_str = CMD_STR_AT_BPS,
 			.user_cmd_set_cb = user_cmd_set_bps,
 			.user_cmd_get_cb = user_cmd_get_bps,
+		},
+		{
+			.msgid = USR_CMD_ID_AT_DPRT,
+			.cmd_str = CMD_STR_AT_DPRT,
+			.user_cmd_set_cb = user_cmd_set_dprt,
+			.user_cmd_get_cb = NULL,
 		}
 };
 
@@ -365,16 +371,19 @@ uint32_t user_cmd_decode(uint8_t com, uint8_t *data, uint8_t len, uint8_t **act)
 			memset(pbuff, 0, p_cmd_decode->maxlen);
 			user_cmd_exit_trans(com, (uint8_t*)pbuff);
 		}
-		else // This is not +++, so send the data to the radio
+		else
 		{
-		#if !defined(PORT_NUM)
-		#error PORT_NUM not defined
-		#elif(PORT_NUM == 2)
-			APP_LOG(TS_ON,VLEVEL_M," ignoring %d \r\n", len);
-		#else
-			APP_LOG(TS_ON,VLEVEL_M,"trans=%d \r\n", len);
-			pub_rtcm(data, len);
-		#endif
+			// This is not +++, so send the data to the radio
+			// if we are in TX mode
+			if (usr_cmd_is_trans_tx())
+			{
+				APP_LOG(TS_ON,VLEVEL_M,"trans=%d \r\n", len);
+				pub_rtcm(data, len);
+			}
+			else
+			{
+				APP_LOG(TS_ON,VLEVEL_M," ignoring %d \r\n", len);
+			}
 		}
 		return 0;
 	}
@@ -540,3 +549,25 @@ bool usr_cmd_is_trans_tx(void)
 	}
 	return isTransTx;
 }
+
+uint32_t user_cmd_set_dprt(uint32_t com, uint8_t *cmd)
+{
+	char *data = (char *)cmd;
+	RADIO_ATTR *m_radio_param = radio_get_cur_param();
+	int dprt;
+
+	if (sscanf(data, CMD_AT_DPRT_FORMAT, &dprt) < 0)
+	{
+		sprintf(data + strlen(data), "%s", CMD_STR_ERR);
+	}
+	else
+	{
+		m_radio_param->dprt = dprt;
+		sprintf(data + strlen(data), "%s", CMD_STR_OK);
+		// todo
+		//radio_param_cfg();
+	}
+
+	return strlen(data);
+}
+

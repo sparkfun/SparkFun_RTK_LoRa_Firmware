@@ -328,7 +328,7 @@ static void UART_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size)
                     }
                     else
                     {
-                        APP_TPRINTF("full com1\r\n");
+                        APP_TPRINTF("full com2\r\n");
                     }
 				}
 				start_uart_rx_irq(huart);
@@ -483,7 +483,7 @@ void UART_ErrorCallback(UART_HandleTypeDef *huart)
                     }
                     else
                     {
-                        APP_TPRINTF("full com1\r\n");
+                        APP_TPRINTF("full com2\r\n");
                     }
 				}
             }

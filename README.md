@@ -78,4 +78,5 @@ LoRa transmitted 3120 RTCM bytes
 
 On Facet FP: AT+DPRT=0 selects UART1 as the data port
 
-
+Setting the LoRa transmit power to 0dBm helps reduce the peak current consumption.
+On a battery-less Facet FP, this can help prevent power brown-outs during TX.

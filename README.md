@@ -1,5 +1,7 @@
 # SparkFun RTK LoRa Firmware
 
+**The file you need is [RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_3.0.0.hex](./RTCM_TRX_FSS_RTK/RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_3.0.0.hex)**
+
 ### Starting point:
 
 _**LoRa-lora_hop.zip**_

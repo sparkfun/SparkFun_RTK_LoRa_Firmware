@@ -124,14 +124,24 @@ void StartDefaultTask(void *argument)
   /* USER CODE BEGIN StartDefaultTask */
 
   user_cmd_init(COM_PORT_IDX, cmd_buf, 1024);
- 
-  #if(COM_PORT_IDX==0)
+
+  // Note: these create the instances of drv_uart_event_task using xTaskCreate
+  // But they won't run until vTaskStartScheduler is called in osKernelStart
   drv_uart_com1_init();
-  drv_uart_com1_read_set_cb(cmd_read_cb);
-  #else
   drv_uart_com2_init();
+
+  // Set the command read callback on the COM_PORT_IDX uart only
+  // Data received on the 'command' port will be passed to cmd_read_cb by drv_uart_event_task
+  // Data on the 'data' port will be passed directly to pub_rtcm by drv_uart_event_task
+#if !defined(COM_PORT_IDX)
+#error COM_PORT_IDX not defined
+#elif(COM_PORT_IDX==0)
+  drv_uart_com1_read_set_cb(cmd_read_cb);
+#elif(COM_PORT_IDX==1)
   drv_uart_com2_read_set_cb(cmd_read_cb);
-  #endif
+#else
+#error Invalid COM_PORT_IDX
+#endif
 
   APP_LOG(TS_ON,VLEVEL_M,"---before radio---Free heap memory: %d bytes------\r\n", xPortGetFreeHeapSize());
     /* init code for SubGHz_Phy */

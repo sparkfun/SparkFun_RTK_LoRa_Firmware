@@ -12,7 +12,7 @@
 #include "utilities_def.h"
 #include "utilities_conf.h"
 
-#define VERSION "0.0.6"
+#define VERSION "3.0.0"
 
 #define MIN(i, j) (((i) < (j)) ? (i) : (j))
 #define MAX(i, j) (((i) > (j)) ? (i) : (j))
@@ -24,8 +24,9 @@ typedef struct
 } APP_TRANS_DATA_TYPE;
 
 /*All tasks PRIORITIES define*/
-#define DRV_UART_CMD_EVENT_TASK_PRI (configMAX_PRIORITIES - 1)
-#define DRV_UART_DATA_EVENT_TASK_PRI (configMAX_PRIORITIES - 1)
+#define DRV_UART_EVENT_TASK_PRI (configMAX_PRIORITIES - 1)
+//#define DRV_UART_CMD_EVENT_TASK_PRI (configMAX_PRIORITIES - 1)
+//#define DRV_UART_DATA_EVENT_TASK_PRI (configMAX_PRIORITIES - 1)
 
 #define DRV_UHF_RX_RTCM_TASK_PRI (configMAX_PRIORITIES - 2)
 #define DRV_UHF_TX_RTCM_TASK_PRI (configMAX_PRIORITIES - 2)

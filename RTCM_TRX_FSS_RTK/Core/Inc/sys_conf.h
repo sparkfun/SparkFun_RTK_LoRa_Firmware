@@ -41,12 +41,12 @@ extern "C" {
 /**
   * @brief  Verbose level for all trace logs
   */
-#define VERBOSE_LEVEL                        VLEVEL_M
+#define VERBOSE_LEVEL                        VLEVEL_OFF
 
 /**
   * @brief Enable trace logs
   */
-#define APP_LOG_ENABLED                      1
+#define APP_LOG_ENABLED                      0
 
 /**
   * @brief Activate monitoring (probes) of some internal RF signals for debug purpose
@@ -69,7 +69,7 @@ extern "C" {
   * @brief Enable/Disable MCU Debugger pins (dbg serial wires)
   * @note  by HW serial wires are ON by default, need to put them OFF to save power
   */
-#define DEBUGGER_ENABLED                     1
+#define DEBUGGER_ENABLED                     0
 
 /**
   * @brief Disable Low Power mode
@@ -78,9 +78,24 @@ extern "C" {
 #define LOW_POWER_DISABLE                    0
 
 /* USER CODE BEGIN EC */
-#define PORT_NUM  2 // 1:use com_port 2:use com and data port
-#define COM_PORT_IDX  1 // 0-uart1 1-uart2 
-#define DBG_PORT   0 //
+
+/*
+  TORCH:
+    COM_PORT_IDX 1 : UART2 is the command port (UART1 is only used for firmware updates)
+    DBG_PORT       : is best commented out, but can be set to 0 (UART1) if desired for debug
+    DPRT defaults to COM_PORT_IDX as the combined command and data port
+
+  FACET FP:
+    COM_PORT_IDX 1 : UART2 is the command port
+    DBG_PORT       : must be commented out (unless you want to send debug to the GNSS pins?)
+    Send "AT+DPRT=0" to select UART1 as the data port
+*/
+
+// COM_PORT_IDX: selects the command port uart: 0:uart1; 1:uart2 
+#define COM_PORT_IDX                         1
+// DBG_PORT: selects the debug port uart: 0:uart1; 1:uart2; Comment to disable
+//#define DBG_PORT                             0
+
 /* USER CODE END EC */
 
 /* External variables --------------------------------------------------------*/

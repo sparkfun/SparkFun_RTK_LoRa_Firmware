@@ -65,6 +65,12 @@ USR_CMD_LIST s_usr_cmd_list[USR_CMD_ID_END] =
 			.cmd_str = CMD_STR_AT_BPS,
 			.user_cmd_set_cb = user_cmd_set_bps,
 			.user_cmd_get_cb = user_cmd_get_bps,
+		},
+		{
+			.msgid = USR_CMD_ID_AT_DPRT,
+			.cmd_str = CMD_STR_AT_DPRT,
+			.user_cmd_set_cb = user_cmd_set_dprt,
+			.user_cmd_get_cb = NULL,
 		}
 };
 
@@ -72,6 +78,10 @@ static CMD_DECODE s_cmd_decode[2] = {0};
 
 uint32_t send_cmd_rsp(const uint8_t *data, const uint16_t len)
 {
+	// uint32_t ret1 = drv_uart_com1_send(data, len);
+	// uint32_t ret2 = drv_uart_com2_send(data, len);
+	// return (ret1 > ret2 ? ret1 : ret2);
+
 	if (cmd_com == 0)
 	{
 		return drv_uart_com1_send(data, len);
@@ -86,15 +96,21 @@ uint32_t user_cmd_enter_trans(uint32_t com, uint8_t *cmd)
 {
 	uint32_t ret;
 	char *data = (char *)cmd;
-	s_cmd_decode[cmd_com].state = TRNS;
+	s_cmd_decode[com].state = TRNS;
 	// TODO:need stop trans rtcm
 	sprintf(data, "%s", "AT+TRANS\r\n\r\nOK\r\n");
+	ret = strlen(data);
+
+	// On Torch, it looks like the response gets gatecrashed by radio_param_cfg
+	// I see "level: 10dbm" but not "AT+TRANS OK"
+	// Send it now to make sure it gets sent
+	// We should not need to do this. TODO: figure out why the response isn't sent
+	send_cmd_rsp((const uint8_t *)data, ret);
 
 	radio_param_cfg();
 
 	start_rtcm_trans();
 
-	ret = strlen(data);
 	APP_LOG(TS_ON,VLEVEL_M,"enter trans\r\n");
 	return ret;
 }
@@ -350,9 +366,10 @@ uint32_t user_cmd_decode(uint8_t com, uint8_t *data, uint8_t len, uint8_t **act)
 	char *pbuff = (char *)p_cmd_decode->buff;
 	char *head = NULL;
 	// APP_LOG(TS_ON,VLEVEL_M,"enter dec \r\n");
-	if (p_cmd_decode->state == TRNS)
+
+	if (p_cmd_decode->state == TRNS) // If we are in TRANSfer
 	{
-		// only check +++
+		// Check for +++ (EXIT_TRANS)
 		if (strstr((char *)data, EXIT_TRANS) != NULL)
 		{
 			APP_LOG(TS_ON,VLEVEL_M,"quit \r\n");
@@ -362,14 +379,24 @@ uint32_t user_cmd_decode(uint8_t com, uint8_t *data, uint8_t len, uint8_t **act)
 		}
 		else
 		{
-			APP_LOG(TS_ON,VLEVEL_M,"trans=%d \r\n", len);
-			pub_rtcm(data, len);
+			// This is not +++, so send the data to the radio
+			// if we are in TX mode
+			if (usr_cmd_is_trans_tx())
+			{
+				APP_LOG(TS_ON,VLEVEL_M,"trans=%d \r\n", len);
+				pub_rtcm(data, len);
+			}
+			else
+			{
+				APP_LOG(TS_ON,VLEVEL_M," ignoring %d \r\n", len);
+			}
 		}
 		return 0;
 	}
 
 	// APP_LOG(TS_ON,VLEVEL_M,"boot pin set [%d] \r\n", is_boot_pin_set());
 
+	// We are not in TRANSfer, so fully decode the command
 	if ((len + p_cmd_decode->offset) > p_cmd_decode->maxlen)
 	{
 		// APP_LOG(TS_ON,VLEVEL_M,"drop %s.\r\n",data);
@@ -483,33 +510,70 @@ static int user_cmd_cb(uint32_t com, uint8_t *buff, uint32_t len, uint8_t *rbuff
 	return ret;
 }
 
-void clear_cmd_buf(void)
+void clear_cmd_buf(uint32_t com)
 {
-	memset(s_cmd_decode[0].buff, 0, s_cmd_decode[0].maxlen);
-	s_cmd_decode[0].state = SEARCH;
+	memset(s_cmd_decode[com].buff, 0, s_cmd_decode[com].maxlen);
+	s_cmd_decode[com].state = SEARCH;
 }
 
-static uint8_t cmd_buf[CMD_RSP_MAX_LEN + 1];
-static uint8_t rsp_buf[CMD_RSP_MAX_LEN + 1];
+static uint8_t cmd_cmd_buf[CMD_RSP_MAX_LEN + 1];
+static uint8_t cmd_rsp_buf[CMD_RSP_MAX_LEN + 1];
 int cmd_read_cb(uint8_t *data, const uint16_t len)
 {
 	int ret = 0;
 	int cmd_len = 0;
 	uint8_t *act = NULL;
 	APP_LOG(TS_ON,VLEVEL_M,"cmd_com=%d len=%d\r\n",cmd_com,len);
-	if (cmd_com >=0 )
+	if (cmd_com >= 0)
 	{
 		// APP_LOG(TS_ON,VLEVEL_M,"call dec \r\n");
 		cmd_len = user_cmd_decode(cmd_com, data, len, &act);
 		if (cmd_len > 0 && cmd_len <= CMD_RSP_MAX_LEN)
 		{
-			memset(cmd_buf, 0, CMD_RSP_MAX_LEN);
-			memset(rsp_buf, 0, CMD_RSP_MAX_LEN);
+			// We decoded a command, so call its callback
+			memset(cmd_cmd_buf, 0, CMD_RSP_MAX_LEN);
+			memset(cmd_rsp_buf, 0, CMD_RSP_MAX_LEN);
 
-			memcpy(cmd_buf, act, cmd_len);
-			user_cmd_cb(cmd_com, cmd_buf, cmd_len, rsp_buf);
+			memcpy(cmd_cmd_buf, act, cmd_len);
+			user_cmd_cb(cmd_com, cmd_cmd_buf, cmd_len, cmd_rsp_buf);
 		}
 	}
 
 	return ret;
 }
+
+bool usr_cmd_is_trans_tx(void)
+{
+	bool isTransTx = false;
+	if (s_cmd_decode[cmd_com].state == TRNS)
+	{
+		RADIO_ATTR *m_radio_param = radio_get_cur_param();
+		if (m_radio_param->mode == RADIO_MODE_TX)
+		{
+			isTransTx = true;
+		}
+	}
+	return isTransTx;
+}
+
+uint32_t user_cmd_set_dprt(uint32_t com, uint8_t *cmd)
+{
+	char *data = (char *)cmd;
+	RADIO_ATTR *m_radio_param = radio_get_cur_param();
+	int dprt;
+
+	if (sscanf(data, CMD_AT_DPRT_FORMAT, &dprt) < 0)
+	{
+		sprintf(data + strlen(data), "%s", CMD_STR_ERR);
+	}
+	else
+	{
+		m_radio_param->dprt = dprt;
+		sprintf(data + strlen(data), "%s", CMD_STR_OK);
+		// todo
+		//radio_param_cfg();
+	}
+
+	return strlen(data);
+}
+

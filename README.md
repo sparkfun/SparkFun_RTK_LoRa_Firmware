@@ -1,4 +1,4 @@
-# SparkFun RTK LoRa Firmware
+# LoRa
 
 ### Starting point:
 

@@ -47,7 +47,9 @@ Building RTCM_TRX_FSS_RTK\STM32CubeIDE\.project produces:
 These have been copied to:
 * [RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_3.0.0.hex](./RTCM_TRX_FSS_RTK/RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_3.0.0.hex) etc.
 
-Set RTK unit to LoRa passthrough (s h 17) to connect STM32WL55 UART1 to USB through the ESP32
+Set RTK unit to LoRa direct connect (s h 17) to connect STM32WL55 UART to USB through the ESP32
+* On Torch: the STM32WL55 is programmed via UART1
+* On Facet FP: the STM32WL55 is programmed via UART2
 
 Use STM32CubeProgrammer v2.22.0 to program the .hex onto the STM32WL55
 
@@ -87,3 +89,4 @@ On Facet FP: the firmware sends ```AT+DPRT=0``` to select UART1 as the data port
 
 Setting the LoRa transmit power to 0dBm helps reduce the peak current consumption:
 * On a battery-less Facet FP, this can help prevent power brown-outs during TX
+* Default transmit power is 10dBm

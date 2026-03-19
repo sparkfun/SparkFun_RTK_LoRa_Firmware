@@ -1,6 +1,6 @@
 # SparkFun RTK LoRa Firmware
 
-**The file you need is [RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_3.0.0.hex](./RTCM_TRX_FSS_RTK/RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_3.0.0.hex)**
+**The file you need is [RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_3.0.1.hex](./RTCM_TRX_FSS_RTK/RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_3.0.1.hex)**
 
 ### Starting point:
 
@@ -35,7 +35,7 @@ Replace ```PORT_NUM``` with ```radio_param->dprt```
 * On Torch: dprt defaults to ```COM_PORT_IDX``` (1 = UART2) for combined command and data on a single port
 * On Facet FP: ```AT+DPRT=0``` selects UART1 as the data port
 
-Changed the version to ```VERSION "3.0.0"```
+Changed the version to ```VERSION "3.0.1"```
 
 Using STM32CubeIDE Version: 2.1.0
 
@@ -47,7 +47,7 @@ Building RTCM_TRX_FSS_RTK\STM32CubeIDE\.project produces:
 * ```LoRa-lora_hop\LoRa-lora_hop\RTCM_TRX_FSS_RTK\STM32CubeIDE\Debug\RTCM_TRX.bin``` / ```.elf``` / ```.hex``` / ```.list``` / ```.map```
 
 These have been copied to:
-* [RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_3.0.0.hex](./RTCM_TRX_FSS_RTK/RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_3.0.0.hex) etc.
+* [RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_3.0.1.hex](./RTCM_TRX_FSS_RTK/RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_3.0.1.hex) etc.
 
 Set RTK unit to LoRa direct connect (s h 17) to connect STM32WL55 UART to USB through the ESP32
 * On Torch: the STM32WL55 is programmed via UART1
@@ -60,7 +60,7 @@ Set the Base RTK unit to Base (Survey-In) and enable LoRa (TX) at 910MHz
 ```
 Menu: Radios
 1) ESP-NOW Radio: Disabled
-10) LoRa Radio: Enabled - Firmware v3.0.0
+10) LoRa Radio: Enabled - Firmware v3.0.1
 11) LoRa Coordination Frequency: 910.000
 12) LoRa Transmit Power: 0dBm
 ```

@@ -613,7 +613,8 @@ static bool is_diff_app_cfg()
 			||s_radio_attr_flash.freq[1] != s_radio_attr.freq[1]
 			||s_radio_attr_flash.wlbaud[0] != s_radio_attr.wlbaud[0]
 			||s_radio_attr_flash.wlbaud[1] != s_radio_attr.wlbaud[1]
-		    ||s_radio_attr_flash.power_level != s_radio_attr.power_level)
+		    ||s_radio_attr_flash.power_level != s_radio_attr.power_level
+		    ||s_radio_attr_flash.dprt != s_radio_attr.dprt)
 	{
 		ret = true;
 	}
@@ -709,10 +710,11 @@ uint32_t radio_param_cfg(void)
 	{
 		APP_LOG(TS_ON, VLEVEL_M,"diff app cfg\r\n");
 		s_radio_attr_flash = s_radio_attr;
-		APP_LOG(TS_ON, VLEVEL_M,"attr_flash: magic %x mode %d bps %d freq %d %d wlbaud %d %d level %d \r\n",
+		APP_LOG(TS_ON, VLEVEL_M,"attr_flash: magic %x mode %d bps %d freq %d %d wlbaud %d %d level %d dprt %d \r\n",
 				s_radio_attr_flash.magic,s_radio_attr_flash.mode,
 				s_radio_attr_flash.bps,s_radio_attr_flash.freq[0],s_radio_attr_flash.freq[1],
-				s_radio_attr_flash.wlbaud[0],s_radio_attr_flash.wlbaud[1],s_radio_attr_flash.power_level);
+				s_radio_attr_flash.wlbaud[0],s_radio_attr_flash.wlbaud[1],s_radio_attr_flash.power_level,
+				s_radio_attr_flash.dprt);
 
 		STMFLASH_Write(STM32_FLASH_APPCFG_BASE,(u64*)&s_radio_attr_flash,sizeof(s_radio_attr_flash)/8);
 	}
@@ -936,8 +938,6 @@ static void pull_rtcm_to_uart_handler(void *arg)
 				flash_led();
 				APP_LOG(TS_ON,VLEVEL_M,"RX LEN=%d \r\n",msg.len);
 
-				RADIO_ATTR *m_radio_param = radio_get_cur_param();
-
 				// todo 64 byte send
 #define SPLIT_RTCM_ENABLE 1
 
@@ -950,7 +950,7 @@ static void pull_rtcm_to_uart_handler(void *arg)
 					uint8_t *rx_ptr = &msg.buf[i];
 
 					// Send this to the data port
-					if (m_radio_param->dprt == 0)
+					if (s_radio_attr.dprt == 0)
 						drv_uart_com1_send(rx_ptr, length);
 					else
 						drv_uart_com2_send(rx_ptr, length);
@@ -959,7 +959,7 @@ static void pull_rtcm_to_uart_handler(void *arg)
 				}
 #else
 				// Send this to the data port
-				if (m_radio_param->dprt == 0)
+				if (s_radio_attr.dprt == 0)
 					drv_uart_com1_send(msg.buf, msg.len);
 				else
 					drv_uart_com2_send(msg.buf, msg.len);
@@ -1368,8 +1368,8 @@ uint32_t radio_init(void)
 		s_radio_attr.prot[1] = s_radio_attr_flash.prot[1];
 		s_radio_attr.power_level = s_radio_attr_flash.power_level;
 		s_radio_attr.dprt = s_radio_attr_flash.dprt;
-		APP_LOG(TS_ON,VLEVEL_M,"mode=%d bps = %d, freq =%d PROT=%d\r\n",s_radio_attr_flash.mode,s_radio_attr_flash.bps,
-				s_radio_attr_flash.freq[0],s_radio_attr_flash.prot[0]);
+		APP_LOG(TS_ON,VLEVEL_M,"mode=%d bps = %d, freq =%d PROT=%d DPRT=%d\r\n",s_radio_attr_flash.mode,s_radio_attr_flash.bps,
+				s_radio_attr_flash.freq[0],s_radio_attr_flash.prot[0],s_radio_attr_flash.dprt);
 	}
 
 #if (E77_BOARD ==1)

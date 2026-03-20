@@ -35,6 +35,9 @@ Replace ```PORT_NUM``` with ```radio_param->dprt```
 * On Torch: dprt defaults to ```COM_PORT_IDX``` (1 = UART2) for combined command and data on a single port
 * On Facet FP: ```AT+DPRT=0``` selects UART1 as the data port
 
+In RADIO_ATTR (stored in flash): add the version to trigger re-initialization when the version changes.
+This ensures that when you add a new entry in RADIO_ATTR, it gets initialized properly.
+
 Changed the version to ```VERSION "3.0.1"```
 
 Using STM32CubeIDE Version: 2.1.0

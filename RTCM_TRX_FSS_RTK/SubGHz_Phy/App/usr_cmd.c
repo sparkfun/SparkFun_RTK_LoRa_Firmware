@@ -71,6 +71,12 @@ USR_CMD_LIST s_usr_cmd_list[USR_CMD_ID_END] =
 			.cmd_str = CMD_STR_AT_DPRT,
 			.user_cmd_set_cb = user_cmd_set_dprt,
 			.user_cmd_get_cb = NULL,
+		},
+		{
+			.msgid = USR_CMD_ID_AT_ATTR,
+			.cmd_str = CMD_STR_AT_ATTR,
+			.user_cmd_set_cb = NULL,
+			.user_cmd_get_cb = user_cmd_get_radio_attr,
 		}
 };
 
@@ -105,9 +111,9 @@ uint32_t user_cmd_enter_trans(uint32_t com, uint8_t *cmd)
 	// I see "level: 10dbm" but not "AT+TRANS OK"
 	// Send it now to make sure it gets sent
 	// We should not need to do this. TODO: figure out why the response isn't sent
-	send_cmd_rsp((const uint8_t *)data, ret);
+	//send_cmd_rsp((const uint8_t *)data, ret);
 
-	radio_param_cfg();
+	radio_param_cfg(); // This will save RADIO_ATTR to flash if it has changed
 
 	start_rtcm_trans();
 
@@ -156,10 +162,10 @@ uint32_t user_cmd_get_workmode(uint32_t com, uint8_t *cmd)
 {
 	char *data = (char *)cmd;
 	RADIO_ATTR *m_radio_param = radio_get_cur_param();
-	int work_mode = m_radio_param->mode;
+	uint32_t work_mode = m_radio_param->mode;
 
 	work_mode = m_radio_param->mode;
-	sprintf(data, "AT+MODE=%d\r\n\r\nOK\r\n", work_mode);
+	sprintf(data, "AT+MODE=%lu\r\n\r\nOK\r\n", work_mode);
 
 	return strlen(data);
 }
@@ -169,7 +175,7 @@ uint32_t user_cmd_set_workmode(uint32_t com, uint8_t *cmd)
 	char *data = (char *)cmd;
 	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	int work_mode = 0;
-	if (sscanf(data, CMD_AT_WORKMODE_FORMAT, &work_mode) < 0)
+	if (sscanf(data, CMD_AT_WORKMODE_FORMAT, &work_mode) < 1)
 	{
 		sprintf(data + strlen(data), "%s", CMD_STR_ERR);
 		return strlen(data);
@@ -180,7 +186,7 @@ uint32_t user_cmd_set_workmode(uint32_t com, uint8_t *cmd)
 		sprintf(data + strlen(data), "%s", CMD_STR_OK);
 		//if (m_radio_param->mode != work_mode)
 		{
-			m_radio_param->mode = work_mode;
+			m_radio_param->mode = (uint32_t)work_mode;
 			//radio_param_cfg();
 		}
 	}
@@ -193,13 +199,13 @@ uint32_t user_cmd_set_type(uint32_t com, uint8_t *cmd)
 	char *data = (char *)cmd;
 	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	int radio_type = 0;
-	if (sscanf(data, CMD_AT_TYPE_FORMAT, &radio_type) < 0)
+	if (sscanf(data, CMD_AT_TYPE_FORMAT, &radio_type) < 1)
 	{
 		sprintf(data + strlen(data), "%s", CMD_STR_ERR);
 	}
 	else
 	{
-		m_radio_param->type = radio_type;
+		m_radio_param->type = (uint32_t)radio_type;
 		sprintf(data + strlen(data), "%s", CMD_STR_OK);
 		// todo
 		//radio_param_cfg();
@@ -223,13 +229,13 @@ uint32_t user_cmd_set_txpower(uint32_t com, uint8_t *cmd)
 	char *data = (char *)cmd;
 	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	int power_level = 0;
-	if (sscanf(data, CMD_AT_PWR_FORMAT, &power_level) < 0)
+	if (sscanf(data, CMD_AT_PWR_FORMAT, &power_level) < 1)
 	{
 		sprintf(data + strlen(data), "%s", CMD_STR_ERR);
 	}
 	else
 	{
-		m_radio_param->power_level = power_level;
+		m_radio_param->power_level = (uint32_t)power_level;
 		sprintf(data + strlen(data), "%s", CMD_STR_OK);
 		// todo
 		//radio_param_cfg();
@@ -256,14 +262,14 @@ uint32_t user_cmd_set_frq(uint32_t com, uint8_t *cmd)
 	int tx_frq_m, rx_frq_m;
 	int tx_frq_k, rx_frq_k;
 
-	if (sscanf(data, CMD_AT_FRQ_FORMAT, &tx_frq_m, &tx_frq_k, &rx_frq_m, &rx_frq_k) < 0)
+	if (sscanf(data, CMD_AT_FRQ_FORMAT, &tx_frq_m, &tx_frq_k, &rx_frq_m, &rx_frq_k) < 4)
 	{
 		sprintf(data + strlen(data), "%s", CMD_STR_ERR);
 	}
 	else
 	{
-		m_radio_param->freq[0] = tx_frq_m * FRQ_1M_HZ + tx_frq_k * FRQ_1K_HZ;
-		m_radio_param->freq[1] = rx_frq_m * FRQ_1M_HZ + rx_frq_k * FRQ_1K_HZ;
+		m_radio_param->freq[0] = (uint32_t)tx_frq_m * FRQ_1M_HZ + (uint32_t)tx_frq_k * FRQ_1K_HZ;
+		m_radio_param->freq[1] = (uint32_t)rx_frq_m * FRQ_1M_HZ + (uint32_t)rx_frq_k * FRQ_1K_HZ;
 		sprintf(data + strlen(data), "%s", CMD_STR_OK);
 		// APP_LOG(TS_ON,VLEVEL_M,"txfrq:%d rxfrq:%d\r\n", m_radio_param->freq[0], m_radio_param->freq[1]);
 		// todo
@@ -292,14 +298,14 @@ uint32_t user_cmd_set_frqband(uint32_t com, uint8_t *cmd)
 	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	int tx_bnd = 500, rx_bnd=500;
 
-	if (sscanf(data, CMD_AT_BAND_FORMAT, &tx_bnd, &tx_bnd) < 0)
+	if (sscanf(data, CMD_AT_BAND_FORMAT, &tx_bnd, &tx_bnd) < 2)
 	{
 		sprintf(data + strlen(data), "%s", CMD_STR_ERR);
 	}
 	else
 	{
-		m_radio_param->bandwith[0] = tx_bnd;
-		m_radio_param->bandwith[1] = rx_bnd;
+		m_radio_param->bandwith[0] = (uint32_t)tx_bnd;
+		m_radio_param->bandwith[1] = (uint32_t)rx_bnd;
 		sprintf(data + strlen(data), "%s", CMD_STR_OK);
 		// todo
 		//radio_param_cfg();
@@ -324,13 +330,13 @@ uint32_t user_cmd_set_bps(uint32_t com, uint8_t *cmd)
 	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	int bps;
 
-	if (sscanf(data, CMD_AT_BPS_FORMAT, &bps) < 0)
+	if (sscanf(data, CMD_AT_BPS_FORMAT, &bps) < 1)
 	{
 		sprintf(data + strlen(data), "%s", CMD_STR_ERR);
 	}
 	else
 	{
-		m_radio_param->bps = bps;
+		m_radio_param->bps = (uint32_t)bps;
 		sprintf(data + strlen(data), "%s", CMD_STR_OK);
 		// todo
 		//radio_param_cfg();
@@ -344,7 +350,7 @@ uint32_t user_cmd_get_bps(uint32_t com, uint8_t *cmd)
 	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	char *data = (char *)cmd;
 
-	sprintf(data, "AT+BPS=%ld\r\n\r\nOK\r\n",
+	sprintf(data, "AT+BPS=%lu\r\n\r\nOK\r\n",
 			m_radio_param->bps);
 	return strlen(data);
 }
@@ -562,7 +568,7 @@ uint32_t user_cmd_set_dprt(uint32_t com, uint8_t *cmd)
 	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	int dprt;
 
-	if (sscanf(data, CMD_AT_DPRT_FORMAT, &dprt) < 0)
+	if (sscanf(data, CMD_AT_DPRT_FORMAT, &dprt) < 1)
 	{
 		sprintf(data + strlen(data), "%s", CMD_STR_ERR);
 	}
@@ -577,3 +583,36 @@ uint32_t user_cmd_set_dprt(uint32_t com, uint8_t *cmd)
 	return strlen(data);
 }
 
+extern RADIO_ATTR s_radio_attr;
+
+uint32_t user_cmd_get_radio_attr(uint32_t com, uint8_t *cmd)
+{
+	char *data = (char *)cmd;
+	RADIO_ATTR *m_radio_param = radio_get_cur_param();
+
+	// cmd needs to be able to hold at least 144 bytes
+	// RADIO_ATTR:\r\n        12
+	// version: 300\r\n       14
+	// mode:    0\r\n         12
+	// freq[0]: 915000000\r\n 20
+	// freq[1]: 915000000\r\n 20
+	// bps:     38400\r\n     16
+	// prot[0]: 3\r\n         12
+	// prot[1]: 3\r\n         12
+	// power:   10\r\n        13
+	// dprt:    1\r\n         12
+	// NULL                   1
+
+	sprintf(data, "RADIO_ATTR:\r\n");
+	sprintf(data + strlen(data), "version: %lu\r\n", m_radio_param->version);
+	sprintf(data + strlen(data), "mode:    %lu\r\n", m_radio_param->mode);
+	sprintf(data + strlen(data), "freq[0]: %lu\r\n", m_radio_param->freq[0]);
+	sprintf(data + strlen(data), "freq[1]: %lu\r\n", m_radio_param->freq[1]);
+	sprintf(data + strlen(data), "bps:     %lu\r\n", m_radio_param->bps);
+	sprintf(data + strlen(data), "prot[0]: %lu\r\n", m_radio_param->prot[0]);
+	sprintf(data + strlen(data), "prot[1]: %lu\r\n", m_radio_param->prot[1]);
+	sprintf(data + strlen(data), "power:   %lu\r\n", m_radio_param->power_level);
+	sprintf(data + strlen(data), "dprt:    %lu\r\n", m_radio_param->dprt);
+
+	return strlen(data);
+}

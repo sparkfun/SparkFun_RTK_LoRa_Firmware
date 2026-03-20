@@ -27,7 +27,6 @@ typedef uint32_t (*USER_CMD_CB)(uint32_t com, uint8_t *cmd);
 
 #define CMD_AT_WORKMODE_FORMAT "AT+MODE=%d\r\n" // 0:RX 1:TX
 
-
 #define CMD_AT_BPS_FORMAT "AT+BPS=%d\r\n" // unit:hundred 19200
 
 #define CMD_AT_PROT_FORMAT "AT+PROT=%s\r\n" // TRANSP  TT450 TRIMARK
@@ -36,18 +35,19 @@ typedef uint32_t (*USER_CMD_CB)(uint32_t com, uint8_t *cmd);
 
 #define CMD_AT_ASK "?"
 
-#define CMD_STR_ATV ("AT+V")
-#define CMD_STR_AT_FRQ ("AT+FRQ")
-#define CMD_STR_AT_PWR ("AT+PWR")
-#define CMD_STR_AT_BAND ("AT+BAND")
-#define CMD_STR_AT_TYPE ("At+TYPE")
-#define CMD_STR_AT_MODE ("AT+MODE")
-#define CMD_STR_AT_BPS ("AT+BPS") // 19200 38400 62500
-#define CMD_STR_ENTER_TRANS ("AT+TRANS")
-#define CMD_STR_AT_DPRT ("AT+DPRT")
+#define CMD_STR_AT_ATTR     ("AT+ATTR")
+#define CMD_STR_AT_BAND     ("AT+BAND")
+#define CMD_STR_AT_BPS      ("AT+BPS") // 19200 38400 62500
+#define CMD_STR_AT_DPRT     ("AT+DPRT")
+#define CMD_STR_ATV         ("AT+V")
+#define CMD_STR_AT_FRQ      ("AT+FRQ")
+#define CMD_STR_AT_MODE     ("AT+MODE")
+#define CMD_STR_AT_PWR      ("AT+PWR")
+#define CMD_STR_AT_TYPE     ("AT+TYPE")
+#define CMD_STR_ENTER_TRANS ("AT+TRANS") // Defines USR_CMD_LIST cmd_str[9]
 
 #define CMD_REQ_MAX_LEN 64
-#define CMD_RSP_MAX_LEN 128
+#define CMD_RSP_MAX_LEN 160 // user_cmd_get_radio_attr can return ~144 bytes
 
 #define PROT_LORA  3 // 38400bps 6000hz 12000hz
 
@@ -70,13 +70,15 @@ typedef enum
 	USR_CMD_ID_AT_T,
 	USR_CMD_ID_AT_BPS,
 	USR_CMD_ID_AT_DPRT,
+	USR_CMD_ID_AT_ATTR,
+	// Add new commands above this line
 	USR_CMD_ID_END
 } USR_CMD_ID;
 
 typedef struct
 {
 	uint8_t msgid;
-	uint8_t cmd_str[8];
+	uint8_t cmd_str[9]; // "AT+TRANS" + NULL
 	USER_CMD_CB user_cmd_set_cb;
 	USER_CMD_CB user_cmd_get_cb;
 } USR_CMD_LIST;
@@ -126,6 +128,8 @@ uint32_t user_cmd_set_bps(uint32_t com, uint8_t *cmd);
 uint32_t user_cmd_get_bps(uint32_t com, uint8_t *cmd);
 
 uint32_t user_cmd_set_dprt(uint32_t com, uint8_t *cmd);
+
+uint32_t user_cmd_get_radio_attr(uint32_t com, uint8_t *cmd);
 
 uint32_t send_cmd_rsp(const uint8_t *data, const uint16_t len);
 

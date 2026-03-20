@@ -26,8 +26,8 @@
 #include <stdlib.h>
 #include "drv_flash.h"
 #include "rtcm_crc.h"
-static RADIO_ATTR s_radio_attr UTIL_MEM_ALIGN(8);
-static RADIO_ATTR s_radio_attr_flash UTIL_MEM_ALIGN(8);
+RADIO_ATTR s_radio_attr; // UTIL_MEM_ALIGN(8);
+RADIO_ATTR s_radio_attr_flash; // UTIL_MEM_ALIGN(8);
 static RADIO_INFO s_radio_info;
 static CFIFO  tx_fifo;
 #define MAX_SEND_SIZE  2048
@@ -603,7 +603,7 @@ const RADIO_BPS_LIST BPS_TBL[BPS_NUM]=
 //BW=250kHz,R b=7��(250000/2 7)��(4/(4+1))=10.9kbps
 //BW=500kHz,R b = 7 �� ( 500000 / 2 7 ) �� ( 4 / ( 4 + 1 ) ) = 21.9 k b p s
 
-static bool is_diff_app_cfg()
+static bool is_diff_app_cfg() // Returns true if s_radio_attr_flash != s_radio_attr
 {
 	bool ret = false;
 	if(s_radio_attr_flash.magic != s_radio_attr.magic
@@ -634,7 +634,7 @@ uint32_t radio_param_cfg(void)
 	uint32_t cr = LORA_CR_4_8;//LORA_CR_4_8
 	uint32_t band_id = 2; //500
 #endif
-	uint32_t bps =s_radio_attr.bps; // defaut 38400
+	uint32_t bps = s_radio_attr.bps; // default 38400
 	int hit_id = -1;
 
 	for(int i = 0; i< BPS_NUM;i++)
@@ -706,9 +706,10 @@ uint32_t radio_param_cfg(void)
 #endif
 		}
 	//diff cfg values
-	if(is_diff_app_cfg())
+	if(is_diff_app_cfg()) // Returns true if s_radio_attr_flash != s_radio_attr
 	{
 		APP_LOG(TS_ON, VLEVEL_M,"diff app cfg\r\n");
+		//memcpy(&s_radio_attr_flash, &s_radio_attr, sizeof(s_radio_attr));
 		s_radio_attr_flash = s_radio_attr;
 		APP_LOG(TS_ON, VLEVEL_M,"attr_flash: magic %x mode %d bps %d freq %d %d wlbaud %d %d level %d dprt %d \r\n",
 				s_radio_attr_flash.magic,s_radio_attr_flash.mode,
@@ -1332,7 +1333,17 @@ uint32_t radio_init(void)
 	init_led();
 	APP_LOG(TS_ON,VLEVEL_M,"---after pull task ---Free heap memory: %d bytes------\r\n", xPortGetFreeHeapSize());
 
+	// Trigger first time initialization when the version changes
+	char versionStr[7]; // 3.0.1 plus NULL
+	sprintf(versionStr, "%s", VERSION);
+	int verMajor;
+	int verMinor;
+	int verPatch;
+	sscanf(versionStr, "%d.%d.%d", &verMajor, &verMinor, &verPatch);
+	uint32_t verInt = ((uint32_t)verMajor * 100) + ((uint32_t)verMinor * 10) + ((uint32_t)verPatch * 1);
+
 	s_radio_attr.magic = 0xfeedbeef;
+	s_radio_attr.version = verInt;
 	s_radio_attr.inited = 0x01;
 	s_radio_attr.type = 0;
 	s_radio_attr.switching = true; // true
@@ -1351,23 +1362,26 @@ uint32_t radio_init(void)
 	STMFLASH_Read(STM32_FLASH_APPCFG_BASE,(u64*)&s_radio_attr_flash,sizeof(s_radio_attr_flash)/8);
 
 	APP_LOG(TS_ON,VLEVEL_M,"flash magic:0x%x \r\n",s_radio_attr_flash.magic);
-	if(s_radio_attr_flash.magic != 0xfeedbeef)
+	APP_LOG(TS_ON,VLEVEL_M,"flash version:%d \r\n",s_radio_attr_flash.version);
+	if((s_radio_attr_flash.magic != 0xfeedbeef) || (s_radio_attr_flash.version != verInt))
 	{
 		APP_LOG(TS_ON,VLEVEL_M,"app cfg  first time init\r\n");
+		//memcpy(&s_radio_attr_flash, &s_radio_attr, sizeof(s_radio_attr));
 		s_radio_attr_flash = s_radio_attr;
 		STMFLASH_Write(STM32_FLASH_APPCFG_BASE,(u64*)&s_radio_attr_flash,sizeof(s_radio_attr_flash)/8);
 	}
 	else
 	{
-
-		s_radio_attr.mode = s_radio_attr_flash.mode;
-		s_radio_attr.freq[0] =s_radio_attr_flash.freq[0];
-		s_radio_attr.freq[1] = s_radio_attr_flash.freq[1];
-		s_radio_attr.bps = s_radio_attr_flash.bps;
-		s_radio_attr.prot[0] =s_radio_attr_flash.prot[0];
-		s_radio_attr.prot[1] = s_radio_attr_flash.prot[1];
+		s_radio_attr.mode =        s_radio_attr_flash.mode;
+		s_radio_attr.freq[0] =     s_radio_attr_flash.freq[0];
+		s_radio_attr.freq[1] =     s_radio_attr_flash.freq[1];
+		s_radio_attr.bandwith[0] = s_radio_attr_flash.bandwith[0];
+		s_radio_attr.bandwith[1] = s_radio_attr_flash.bandwith[1];
+		s_radio_attr.bps =         s_radio_attr_flash.bps;
+		s_radio_attr.prot[0] =     s_radio_attr_flash.prot[0];
+		s_radio_attr.prot[1] =     s_radio_attr_flash.prot[1];
 		s_radio_attr.power_level = s_radio_attr_flash.power_level;
-		s_radio_attr.dprt = s_radio_attr_flash.dprt;
+		s_radio_attr.dprt =        s_radio_attr_flash.dprt;
 		APP_LOG(TS_ON,VLEVEL_M,"mode=%d bps = %d, freq =%d PROT=%d DPRT=%d\r\n",s_radio_attr_flash.mode,s_radio_attr_flash.bps,
 				s_radio_attr_flash.freq[0],s_radio_attr_flash.prot[0],s_radio_attr_flash.dprt);
 	}

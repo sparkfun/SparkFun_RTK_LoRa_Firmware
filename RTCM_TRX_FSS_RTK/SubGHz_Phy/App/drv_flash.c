@@ -1,21 +1,42 @@
 #include "drv_flash.h"
 #include "sys_app.h"
 #include "app_common.h"
-u64 STMFLASH_ReadDoubleWord(u32 faddr)
-{
-	return *(u64*)faddr;
+
+// u64 STMFLASH_ReadDoubleWord(u32 faddr)
+// {
+// 	return *(u64*)faddr;
+// }
+
+// void STMFLASH_Read(u32 ReadAddr,u64 *pBuffer,u16 Num64bitToRead)
+// {
+// 	u16 i;
+// 	//APP_PRINTF("STMFLASH_Read add=%x,len =%d \r\n",ReadAddr,Num64bitToRead);
+// 	for(i=0;i<Num64bitToRead;i++)
+// 	{
+// 		*pBuffer = STMFLASH_ReadDoubleWord(ReadAddr);
+// 		ReadAddr += 8;
+// 		pBuffer += 8;
+// 	}
+// }
+
+void STMFLASH_Read(const uint32_t ReadAddr, uint64_t *pBuffer, uint32_t Num) {
+  uint32_t addrx = 0;
+  uint32_t addr_end = 0;
+
+  addrx = ReadAddr;
+  addr_end = ReadAddr + Num * 8;
+
+  if (addrx < STM32_FLASH_BASE || addr_end > (STM32_FLASH_BASE+1024*STM32_FLASH_SIZE) || addrx % 8) {
+    return;
+  }
+
+  for (uint32_t i = 0; i < Num; i++) {
+    pBuffer[i] = STMFLASH_ReadDoubleWord(addrx);
+    addrx += 8;
+  }
 }
 
-void STMFLASH_Read(u32 ReadAddr,u64 *pBuffer,u16 Num64bitToRead)
-{
-	u16 i;
-	//APP_PRINTF("STMFLASH_Read add=%x,len =%d \r\n",ReadAddr,Num64bitToRead);
-	for(i=0;i<Num64bitToRead;i++)
-	{
-		pBuffer[i]=STMFLASH_ReadDoubleWord(ReadAddr);
-		ReadAddr+=8;
-	}
-}
+
 
 void STMFLASH_Write_NoCheck(u32 WriteAddr,u64 *pBuffer,u16 Num64bitToWrite)
 {

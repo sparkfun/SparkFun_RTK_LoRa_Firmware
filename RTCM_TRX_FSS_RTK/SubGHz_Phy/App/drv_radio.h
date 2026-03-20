@@ -51,29 +51,35 @@ typedef enum
 	RADIO_BAND_END,
 } RADIO_BAND_ENUM;
 
-typedef struct __radio_comm_cfg
+typedef struct
 {
 	uint32_t magic;
+	uint32_t version;
 	uint32_t payload_len;// from  type to fhss
 	uint32_t crc32;
+
 	volatile int stop_rtcm;
 	volatile int inited;
 	volatile int switching;
-	uint32_t type; // 0: lora 1: uhf
-	uint32_t mode; // RADIO_MODE_TX RADIO_MODE_RX
+	volatile int padding1;
+
 	uint32_t stepper[2];
 	uint32_t bandwith[2];
-	uint32_t bps;
 	uint32_t prot[2];
-	uint32_t advanced;
 	uint32_t res[2];
 	uint32_t freq[2];
 	uint32_t wlbaud[2]; // air bps
+
+	uint32_t type; // 0: lora 1: uhf
+	uint32_t mode; // RADIO_MODE_TX RADIO_MODE_RX
+	uint32_t bps;
+	uint32_t advanced;
 	uint32_t combaud;	// com bps
 	uint32_t power_level;
 	uint32_t crc_num;
 	uint32_t fhss;
 	uint32_t dprt; // 0:UART1 1:UART2
+	uint32_t padding2[3];
 } RADIO_ATTR;
 
 typedef struct __system_param

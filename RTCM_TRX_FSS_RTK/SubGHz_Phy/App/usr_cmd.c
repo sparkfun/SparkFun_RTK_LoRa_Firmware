@@ -536,7 +536,6 @@ uint32_t user_cmd_set_dprt(uint32_t com, uint8_t *cmd)
 uint32_t user_cmd_get_radio_attr(uint32_t com, uint8_t *cmd)
 {
 	char *data = (char *)cmd;
-	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 
 	// cmd needs to be able to hold at least 150 bytes
 	// RADIO_ATTR:\r\n        12
@@ -552,16 +551,32 @@ uint32_t user_cmd_get_radio_attr(uint32_t com, uint8_t *cmd)
 	// \r\nOK\r\n             6
 	// NULL                   1
 
+	// This doesn't work... TODO: figure out why!
+	// RADIO_ATTR *m_radio_param = radio_get_cur_param();
+	// sprintf(data, "RADIO_ATTR:\r\n");
+	// sprintf(data + strlen(data), "version: %lu\r\n", m_radio_param->version);
+	// sprintf(data + strlen(data), "mode:    %lu\r\n", m_radio_param->mode);
+	// sprintf(data + strlen(data), "freq[0]: %lu\r\n", m_radio_param->freq[0]);
+	// sprintf(data + strlen(data), "freq[1]: %lu\r\n", m_radio_param->freq[1]);
+	// sprintf(data + strlen(data), "bps:     %lu\r\n", m_radio_param->bps);
+	// sprintf(data + strlen(data), "prot[0]: %lu\r\n", m_radio_param->prot[0]);
+	// sprintf(data + strlen(data), "prot[1]: %lu\r\n", m_radio_param->prot[1]);
+	// sprintf(data + strlen(data), "power:   %lu\r\n", m_radio_param->power_level);
+	// sprintf(data + strlen(data), "dprt:    %lu\r\n", m_radio_param->dprt);
+	// sprintf(data + strlen(data), "%s", CMD_STR_OK);
+
+	RADIO_ATTR m_radio_param;
+	memcpy(&m_radio_param, (void *)radio_get_cur_param(), sizeof(m_radio_param));
 	sprintf(data, "RADIO_ATTR:\r\n");
-	sprintf(data + strlen(data), "version: %lu\r\n", m_radio_param->version);
-	sprintf(data + strlen(data), "mode:    %lu\r\n", m_radio_param->mode);
-	sprintf(data + strlen(data), "freq[0]: %lu\r\n", m_radio_param->freq[0]);
-	sprintf(data + strlen(data), "freq[1]: %lu\r\n", m_radio_param->freq[1]);
-	sprintf(data + strlen(data), "bps:     %lu\r\n", m_radio_param->bps);
-	sprintf(data + strlen(data), "prot[0]: %lu\r\n", m_radio_param->prot[0]);
-	sprintf(data + strlen(data), "prot[1]: %lu\r\n", m_radio_param->prot[1]);
-	sprintf(data + strlen(data), "power:   %lu\r\n", m_radio_param->power_level);
-	sprintf(data + strlen(data), "dprt:    %lu\r\n", m_radio_param->dprt);
+	sprintf(data + strlen(data), "version: %lu\r\n", m_radio_param.version);
+	sprintf(data + strlen(data), "mode:    %lu\r\n", m_radio_param.mode);
+	sprintf(data + strlen(data), "freq[0]: %lu\r\n", m_radio_param.freq[0]);
+	sprintf(data + strlen(data), "freq[1]: %lu\r\n", m_radio_param.freq[1]);
+	sprintf(data + strlen(data), "bps:     %lu\r\n", m_radio_param.bps);
+	sprintf(data + strlen(data), "prot[0]: %lu\r\n", m_radio_param.prot[0]);
+	sprintf(data + strlen(data), "prot[1]: %lu\r\n", m_radio_param.prot[1]);
+	sprintf(data + strlen(data), "power:   %lu\r\n", m_radio_param.power_level);
+	sprintf(data + strlen(data), "dprt:    %lu\r\n", m_radio_param.dprt);
 	sprintf(data + strlen(data), "%s", CMD_STR_OK);
 
 	return strlen(data);

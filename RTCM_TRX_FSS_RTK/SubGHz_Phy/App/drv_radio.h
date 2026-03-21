@@ -65,8 +65,10 @@ typedef struct
 
 	uint32_t stepper[2];
 	uint32_t bandwith[2];
+
 	uint32_t prot[2];
 	uint32_t res[2];
+
 	uint32_t freq[2];
 	uint32_t wlbaud[2]; // air bps
 
@@ -74,12 +76,15 @@ typedef struct
 	uint32_t mode; // RADIO_MODE_TX RADIO_MODE_RX
 	uint32_t bps;
 	uint32_t advanced;
+
 	uint32_t combaud;	// com bps
 	uint32_t power_level;
 	uint32_t crc_num;
 	uint32_t fhss;
+	
 	uint32_t dprt; // 0:UART1 1:UART2
-	uint32_t padding2[3];
+	uint32_t padding2[2];
+	uint32_t tail; // Last, for easy identification in CubeProgrammer
 } RADIO_ATTR;
 
 typedef struct __system_param

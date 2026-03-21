@@ -26,8 +26,9 @@
 #include <stdlib.h>
 #include "drv_flash.h"
 #include "rtcm_crc.h"
-RADIO_ATTR s_radio_attr; // UTIL_MEM_ALIGN(8);
-RADIO_ATTR s_radio_attr_flash; // UTIL_MEM_ALIGN(8);
+
+static RADIO_ATTR s_radio_attr UTIL_MEM_ALIGN(8);
+static RADIO_ATTR s_radio_attr_flash UTIL_MEM_ALIGN(8);
 static RADIO_INFO s_radio_info;
 static CFIFO  tx_fifo;
 #define MAX_SEND_SIZE  2048
@@ -709,8 +710,8 @@ uint32_t radio_param_cfg(void)
 	if(is_diff_app_cfg()) // Returns true if s_radio_attr_flash != s_radio_attr
 	{
 		APP_LOG(TS_ON, VLEVEL_M,"diff app cfg\r\n");
-		//memcpy(&s_radio_attr_flash, &s_radio_attr, sizeof(s_radio_attr));
-		s_radio_attr_flash = s_radio_attr;
+		memcpy(&s_radio_attr_flash, &s_radio_attr, sizeof(s_radio_attr));
+		//s_radio_attr_flash = s_radio_attr;
 		APP_LOG(TS_ON, VLEVEL_M,"attr_flash: magic %x mode %d bps %d freq %d %d wlbaud %d %d level %d dprt %d \r\n",
 				s_radio_attr_flash.magic,s_radio_attr_flash.mode,
 				s_radio_attr_flash.bps,s_radio_attr_flash.freq[0],s_radio_attr_flash.freq[1],
@@ -1357,17 +1358,19 @@ uint32_t radio_init(void)
 	s_radio_attr.prot[1] = s_radio_attr.prot[0] = PROT_LORA;
 	s_radio_attr.power_level = 10; //default 10 dbm
 	s_radio_attr.dprt = COM_PORT_IDX; // default 1:UART2 for Torch
+	s_radio_attr.tail = 0xbeefdead; // Last, for easy identification
 
 	//APP_LOG(TS_ON,VLEVEL_M,"attr size=%d \r\n",sizeof(s_radio_attr_flash));
 	STMFLASH_Read(STM32_FLASH_APPCFG_BASE,(u64*)&s_radio_attr_flash,sizeof(s_radio_attr_flash)/8);
 
 	APP_LOG(TS_ON,VLEVEL_M,"flash magic:0x%x \r\n",s_radio_attr_flash.magic);
 	APP_LOG(TS_ON,VLEVEL_M,"flash version:%d \r\n",s_radio_attr_flash.version);
-	if((s_radio_attr_flash.magic != 0xfeedbeef) || (s_radio_attr_flash.version != verInt))
+	if((s_radio_attr_flash.magic != 0xfeedbeef) || (s_radio_attr_flash.version != verInt)
+        || (s_radio_attr_flash.tail != 0xbeefdead))
 	{
 		APP_LOG(TS_ON,VLEVEL_M,"app cfg  first time init\r\n");
-		//memcpy(&s_radio_attr_flash, &s_radio_attr, sizeof(s_radio_attr));
-		s_radio_attr_flash = s_radio_attr;
+		memcpy(&s_radio_attr_flash, &s_radio_attr, sizeof(s_radio_attr));
+		//s_radio_attr_flash = s_radio_attr;
 		STMFLASH_Write(STM32_FLASH_APPCFG_BASE,(u64*)&s_radio_attr_flash,sizeof(s_radio_attr_flash)/8);
 	}
 	else

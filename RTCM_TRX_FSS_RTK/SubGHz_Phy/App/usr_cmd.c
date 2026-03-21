@@ -14,73 +14,26 @@
 
 #define USR_STRSTR strstr
 #define USR_STRLEN strlen
+
 static int cmd_com = 0; // default com1
 
-USR_CMD_LIST s_usr_cmd_list[USR_CMD_ID_END] =
-	{
-		{
-			.msgid = USR_CMD_ID_ATV,
-			.cmd_str = CMD_STR_ATV,
-			.user_cmd_set_cb = NULL,
-			.user_cmd_get_cb = user_cmd_get_cfg,
-		},
-		{
-			.msgid = USR_CMD_ID_AT_FRQ,
-			.cmd_str = CMD_STR_AT_FRQ,
-			.user_cmd_set_cb = user_cmd_set_frq,
-			.user_cmd_get_cb = user_cmd_get_frq,
-		},
-		{
-			.msgid = USR_CMD_ID_AT_PWR,
-			.cmd_str = CMD_STR_AT_PWR,
-			.user_cmd_set_cb = user_cmd_set_txpower,
-			.user_cmd_get_cb = user_cmd_get_txpower,
-		},
-		{
-			.msgid = USR_CMD_ID_AT_BAND,
-			.cmd_str = CMD_STR_AT_BAND,
-			.user_cmd_set_cb = user_cmd_set_frqband,
-			.user_cmd_get_cb = user_cmd_get_frqband,
-		},
-		{
-			.msgid = USR_CMD_ID_AT_TYPE,
-			.cmd_str = CMD_STR_AT_TYPE,
-			.user_cmd_set_cb = user_cmd_set_type,
-			.user_cmd_get_cb = user_cmd_get_type,
-		},
-		{
-			.msgid = USR_CMD_ID_AT_MODE,
-			.cmd_str = CMD_STR_AT_MODE,
-			.user_cmd_set_cb = user_cmd_set_workmode,
-			.user_cmd_get_cb = user_cmd_get_workmode,
-		},
-		{
-			.msgid = USR_CMD_ID_AT_T,
-			.cmd_str = CMD_STR_ENTER_TRANS,
-			.user_cmd_set_cb = user_cmd_enter_trans,
-			.user_cmd_get_cb = NULL,
-		},
-		{
-			.msgid = USR_CMD_ID_AT_BPS,
-			.cmd_str = CMD_STR_AT_BPS,
-			.user_cmd_set_cb = user_cmd_set_bps,
-			.user_cmd_get_cb = user_cmd_get_bps,
-		},
-		{
-			.msgid = USR_CMD_ID_AT_DPRT,
-			.cmd_str = CMD_STR_AT_DPRT,
-			.user_cmd_set_cb = user_cmd_set_dprt,
-			.user_cmd_get_cb = NULL,
-		},
-		{
-			.msgid = USR_CMD_ID_AT_ATTR,
-			.cmd_str = CMD_STR_AT_ATTR,
-			.user_cmd_set_cb = NULL,
-			.user_cmd_get_cb = user_cmd_get_radio_attr,
-		}
+static CMD_DECODE s_cmd_decode[2] = {0};
+
+const USR_CMD_LIST s_usr_cmd_list[] =
+{
+	{ USR_CMD_ID_ATV,      "AT+V",     NULL, user_cmd_get_cfg, },
+	{ USR_CMD_ID_AT_FRQ,   "AT+FRQ",   user_cmd_set_frq, user_cmd_get_frq, },
+	{ USR_CMD_ID_AT_PWR,   "AT+PWR",   user_cmd_set_txpower, user_cmd_get_txpower, },
+	{ USR_CMD_ID_AT_BAND,  "AT+BAND",  user_cmd_set_frqband, user_cmd_get_frqband, },
+	{ USR_CMD_ID_AT_TYPE,  "AT+TYPE",  user_cmd_set_type, user_cmd_get_type, },
+	{ USR_CMD_ID_AT_MODE,  "AT+MODE",  user_cmd_set_workmode, user_cmd_get_workmode, },
+	{ USR_CMD_ID_AT_TRANS, "AT+TRANS", user_cmd_enter_trans, NULL, },
+	{ USR_CMD_ID_AT_BPS,   "AT+BPS",   user_cmd_set_bps, user_cmd_get_bps, },
+	{ USR_CMD_ID_AT_DPRT,  "AT+DPRT",  user_cmd_set_dprt, NULL, },
+	{ USR_CMD_ID_AT_ATTR,  "AT+ATTR",  NULL, user_cmd_get_radio_attr, }
 };
 
-static CMD_DECODE s_cmd_decode[2] = {0};
+const int USR_CMD_MAX_END = sizeof(s_usr_cmd_list) / sizeof(s_usr_cmd_list[0]);
 
 uint32_t send_cmd_rsp(const uint8_t *data, const uint16_t len)
 {
@@ -125,8 +78,9 @@ void init_app_cfg_to_radio()
 {
 	char buf[64]={0};
 	APP_LOG(TS_ON,VLEVEL_M,"init_app_cfg_to_radio\r\n");
-	user_cmd_enter_trans(cmd_com,(uint8_t*)buf);
+	user_cmd_enter_trans(cmd_com, (uint8_t*)buf);
 }
+
 uint32_t user_cmd_exit_trans(uint32_t com, uint8_t *cmd)
 {
 	uint32_t ret;
@@ -144,18 +98,15 @@ uint32_t user_cmd_get_cfg(uint32_t com, uint8_t *cmd)
 {
 	char *data = (char *)cmd;
 
-	if (0 != strncasecmp((char *)cmd, CMD_STR_ATV, USR_STRLEN(CMD_STR_ATV)))
+	if (0 != strncasecmp((char *)cmd, "AT+V", USR_STRLEN("AT+V")))
 	{
 		sprintf(data + strlen(data), CMD_STR_ERR);
 		return strlen(data);
 	}
 
-	uint32_t ret = 0;
-
 	sprintf(data, "version:%s\r\n\r\nOK\r\n", VERSION);
 
-	ret = strlen(data);
-	return ret;
+	return strlen(data);
 }
 
 uint32_t user_cmd_get_workmode(uint32_t com, uint8_t *cmd)
@@ -175,7 +126,7 @@ uint32_t user_cmd_set_workmode(uint32_t com, uint8_t *cmd)
 	char *data = (char *)cmd;
 	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	int work_mode = 0;
-	if (sscanf(data, CMD_AT_WORKMODE_FORMAT, &work_mode) < 1)
+	if (sscanf(data, "AT+MODE=%d\r\n", &work_mode) < 1)
 	{
 		sprintf(data + strlen(data), "%s", CMD_STR_ERR);
 		return strlen(data);
@@ -199,7 +150,7 @@ uint32_t user_cmd_set_type(uint32_t com, uint8_t *cmd)
 	char *data = (char *)cmd;
 	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	int radio_type = 0;
-	if (sscanf(data, CMD_AT_TYPE_FORMAT, &radio_type) < 1)
+	if (sscanf(data, "AT+TYPE=%d\r\n", &radio_type) < 1)
 	{
 		sprintf(data + strlen(data), "%s", CMD_STR_ERR);
 	}
@@ -229,7 +180,7 @@ uint32_t user_cmd_set_txpower(uint32_t com, uint8_t *cmd)
 	char *data = (char *)cmd;
 	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	int power_level = 0;
-	if (sscanf(data, CMD_AT_PWR_FORMAT, &power_level) < 1)
+	if (sscanf(data, "AT+PWR=%d\r\n", &power_level) < 1)
 	{
 		sprintf(data + strlen(data), "%s", CMD_STR_ERR);
 	}
@@ -262,7 +213,7 @@ uint32_t user_cmd_set_frq(uint32_t com, uint8_t *cmd)
 	int tx_frq_m, rx_frq_m;
 	int tx_frq_k, rx_frq_k;
 
-	if (sscanf(data, CMD_AT_FRQ_FORMAT, &tx_frq_m, &tx_frq_k, &rx_frq_m, &rx_frq_k) < 4)
+	if (sscanf(data, "AT+FRQ=%d.%03d %d.%03d\r\n", &tx_frq_m, &tx_frq_k, &rx_frq_m, &rx_frq_k) < 4)
 	{
 		sprintf(data + strlen(data), "%s", CMD_STR_ERR);
 	}
@@ -298,7 +249,7 @@ uint32_t user_cmd_set_frqband(uint32_t com, uint8_t *cmd)
 	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	int tx_bnd = 500, rx_bnd=500;
 
-	if (sscanf(data, CMD_AT_BAND_FORMAT, &tx_bnd, &tx_bnd) < 2)
+	if (sscanf(data, "AT+BAND=%d %d\r\n", &tx_bnd, &tx_bnd) < 2)
 	{
 		sprintf(data + strlen(data), "%s", CMD_STR_ERR);
 	}
@@ -330,7 +281,7 @@ uint32_t user_cmd_set_bps(uint32_t com, uint8_t *cmd)
 	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	int bps;
 
-	if (sscanf(data, CMD_AT_BPS_FORMAT, &bps) < 1)
+	if (sscanf(data, "AT+BPS=%d\r\n", &bps) < 1)
 	{
 		sprintf(data + strlen(data), "%s", CMD_STR_ERR);
 	}
@@ -437,7 +388,6 @@ uint32_t user_cmd_decode(uint8_t com, uint8_t *data, uint8_t len, uint8_t **act)
 	}
 }
 
-
 void user_cmd_init(uint8_t com, uint8_t *cMsgBuf, uint32_t iMsgSize)
 {
 	if (!cMsgBuf || iMsgSize < CMD_RSP_MAX_LEN)
@@ -470,7 +420,7 @@ static int user_cmd_cb(uint32_t com, uint8_t *buff, uint32_t len, uint8_t *rbuff
 		return -1;
 	}
 
-	for (int i = 0; i < USR_CMD_ID_END; i++)
+	for (int i = 0; i < USR_CMD_MAX_END; i++)
 	{
 		if (s_usr_cmd_list[i].msgid != 0)
 		{
@@ -537,8 +487,8 @@ int cmd_read_cb(uint8_t *data, const uint16_t len)
 		if (cmd_len > 0 && cmd_len <= CMD_RSP_MAX_LEN)
 		{
 			// We decoded a command, so call its callback
-			memset(cmd_cmd_buf, 0, CMD_RSP_MAX_LEN);
-			memset(cmd_rsp_buf, 0, CMD_RSP_MAX_LEN);
+			memset(cmd_cmd_buf, 0, CMD_RSP_MAX_LEN + 1);
+			memset(cmd_rsp_buf, 0, CMD_RSP_MAX_LEN + 1);
 
 			memcpy(cmd_cmd_buf, act, cmd_len);
 			user_cmd_cb(cmd_com, cmd_cmd_buf, cmd_len, cmd_rsp_buf);
@@ -568,7 +518,7 @@ uint32_t user_cmd_set_dprt(uint32_t com, uint8_t *cmd)
 	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	int dprt;
 
-	if (sscanf(data, CMD_AT_DPRT_FORMAT, &dprt) < 1)
+	if (sscanf(data, "AT+DPRT=%d\r\n", &dprt) < 1)
 	{
 		sprintf(data + strlen(data), "%s", CMD_STR_ERR);
 	}
@@ -582,8 +532,6 @@ uint32_t user_cmd_set_dprt(uint32_t com, uint8_t *cmd)
 
 	return strlen(data);
 }
-
-extern RADIO_ATTR s_radio_attr;
 
 uint32_t user_cmd_get_radio_attr(uint32_t com, uint8_t *cmd)
 {

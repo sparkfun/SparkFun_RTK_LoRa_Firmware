@@ -408,7 +408,7 @@ uint32_t user_cmd_decode(uint8_t com, uint8_t *data, uint8_t len, uint8_t **act)
 		// APP_LOG(TS_ON,VLEVEL_M,"drop %s.\r\n",data);
 		// drop the cmd
 		p_cmd_decode->offset = 0;
-		memset(pbuff, 0, p_cmd_decode->maxlen);
+		memset(pbuff, 0, p_cmd_decode->maxlen); // TODO: p_cmd_decode->maxlen is much larger than CMD_RSP_MAX_LEN
 		return 0;
 	}
 	else
@@ -590,7 +590,7 @@ uint32_t user_cmd_get_radio_attr(uint32_t com, uint8_t *cmd)
 	char *data = (char *)cmd;
 	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 
-	// cmd needs to be able to hold at least 144 bytes
+	// cmd needs to be able to hold at least 150 bytes
 	// RADIO_ATTR:\r\n        12
 	// version: 300\r\n       14
 	// mode:    0\r\n         12
@@ -601,6 +601,7 @@ uint32_t user_cmd_get_radio_attr(uint32_t com, uint8_t *cmd)
 	// prot[1]: 3\r\n         12
 	// power:   10\r\n        13
 	// dprt:    1\r\n         12
+	// \r\nOK\r\n             6
 	// NULL                   1
 
 	sprintf(data, "RADIO_ATTR:\r\n");
@@ -613,6 +614,7 @@ uint32_t user_cmd_get_radio_attr(uint32_t com, uint8_t *cmd)
 	sprintf(data + strlen(data), "prot[1]: %lu\r\n", m_radio_param->prot[1]);
 	sprintf(data + strlen(data), "power:   %lu\r\n", m_radio_param->power_level);
 	sprintf(data + strlen(data), "dprt:    %lu\r\n", m_radio_param->dprt);
+	sprintf(data + strlen(data), "%s", CMD_STR_OK);
 
 	return strlen(data);
 }

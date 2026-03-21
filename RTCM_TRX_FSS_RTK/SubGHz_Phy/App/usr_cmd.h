@@ -47,7 +47,7 @@ typedef uint32_t (*USER_CMD_CB)(uint32_t com, uint8_t *cmd);
 #define CMD_STR_ENTER_TRANS ("AT+TRANS") // Defines USR_CMD_LIST cmd_str[9]
 
 #define CMD_REQ_MAX_LEN 64
-#define CMD_RSP_MAX_LEN 160 // user_cmd_get_radio_attr can return ~144 bytes
+#define CMD_RSP_MAX_LEN 256 // user_cmd_get_radio_attr can return ~150 bytes
 
 #define PROT_LORA  3 // 38400bps 6000hz 12000hz
 

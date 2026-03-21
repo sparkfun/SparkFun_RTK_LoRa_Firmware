@@ -9,6 +9,8 @@
 #include "subghz_phy_app.h"
 
 /* USER CODE BEGIN Includes */
+#include "drv_radio.h"
+
 #include "stm32_timer.h"
 #include "utilities_def.h"
 #include "app_version.h"
@@ -18,7 +20,6 @@
 #include "sys_app.h"
 #include "radio_driver.h"
 
-#include "drv_radio.h"
 #include "drv_uart.h"
 #include "ring_buffer.h"
 #include "usr_cmd.h"
@@ -710,6 +711,9 @@ uint32_t radio_param_cfg(void)
 	if(is_diff_app_cfg()) // Returns true if s_radio_attr_flash != s_radio_attr
 	{
 		APP_LOG(TS_ON, VLEVEL_M,"diff app cfg\r\n");
+
+		s_radio_attr.flash_writes = s_radio_attr.flash_writes + 1; // Increment write count before copy and write
+
 		memcpy(&s_radio_attr_flash, &s_radio_attr, sizeof(s_radio_attr));
 		//s_radio_attr_flash = s_radio_attr;
 		APP_LOG(TS_ON, VLEVEL_M,"attr_flash: magic %x mode %d bps %d freq %d %d wlbaud %d %d level %d dprt %d \r\n",
@@ -1358,6 +1362,7 @@ uint32_t radio_init(void)
 	s_radio_attr.prot[1] = s_radio_attr.prot[0] = PROT_LORA;
 	s_radio_attr.power_level = 10; //default 10 dbm
 	s_radio_attr.dprt = COM_PORT_IDX; // default 1:UART2 for Torch
+	s_radio_attr.flash_writes = 0;
 	s_radio_attr.tail = 0xbeefdead; // Last, for easy identification
 
 	//APP_LOG(TS_ON,VLEVEL_M,"attr size=%d \r\n",sizeof(s_radio_attr_flash));
@@ -1375,16 +1380,17 @@ uint32_t radio_init(void)
 	}
 	else
 	{
-		s_radio_attr.mode =        s_radio_attr_flash.mode;
-		s_radio_attr.freq[0] =     s_radio_attr_flash.freq[0];
-		s_radio_attr.freq[1] =     s_radio_attr_flash.freq[1];
-		s_radio_attr.bandwith[0] = s_radio_attr_flash.bandwith[0];
-		s_radio_attr.bandwith[1] = s_radio_attr_flash.bandwith[1];
-		s_radio_attr.bps =         s_radio_attr_flash.bps;
-		s_radio_attr.prot[0] =     s_radio_attr_flash.prot[0];
-		s_radio_attr.prot[1] =     s_radio_attr_flash.prot[1];
-		s_radio_attr.power_level = s_radio_attr_flash.power_level;
-		s_radio_attr.dprt =        s_radio_attr_flash.dprt;
+		s_radio_attr.mode =         s_radio_attr_flash.mode;
+		s_radio_attr.freq[0] =      s_radio_attr_flash.freq[0];
+		s_radio_attr.freq[1] =      s_radio_attr_flash.freq[1];
+		s_radio_attr.bandwith[0] =  s_radio_attr_flash.bandwith[0];
+		s_radio_attr.bandwith[1] =  s_radio_attr_flash.bandwith[1];
+		s_radio_attr.bps =          s_radio_attr_flash.bps;
+		s_radio_attr.prot[0] =      s_radio_attr_flash.prot[0];
+		s_radio_attr.prot[1] =      s_radio_attr_flash.prot[1];
+		s_radio_attr.power_level =  s_radio_attr_flash.power_level;
+		s_radio_attr.dprt =         s_radio_attr_flash.dprt;
+		s_radio_attr.flash_writes = s_radio_attr_flash.flash_writes;
 		APP_LOG(TS_ON,VLEVEL_M,"mode=%d bps = %d, freq =%d PROT=%d DPRT=%d\r\n",s_radio_attr_flash.mode,s_radio_attr_flash.bps,
 				s_radio_attr_flash.freq[0],s_radio_attr_flash.prot[0],s_radio_attr_flash.dprt);
 	}

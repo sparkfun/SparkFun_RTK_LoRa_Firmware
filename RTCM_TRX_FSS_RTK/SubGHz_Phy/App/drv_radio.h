@@ -51,7 +51,7 @@ typedef enum
 	RADIO_BAND_END,
 } RADIO_BAND_ENUM;
 
-typedef struct
+typedef struct _RADIO_ATTR
 {
 	uint32_t magic;
 	uint32_t version;
@@ -83,7 +83,8 @@ typedef struct
 	uint32_t fhss;
 	
 	uint32_t dprt; // 0:UART1 1:UART2
-	uint32_t padding2[2];
+	uint32_t padding2;
+	uint32_t flash_writes;
 	uint32_t tail; // Last, for easy identification in CubeProgrammer
 } RADIO_ATTR;
 

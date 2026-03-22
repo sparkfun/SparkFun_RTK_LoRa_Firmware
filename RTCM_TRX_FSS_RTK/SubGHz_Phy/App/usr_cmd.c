@@ -115,8 +115,8 @@ uint32_t user_cmd_get_cfg(uint32_t com, uint8_t *cmd)
 uint32_t user_cmd_get_workmode(uint32_t com, uint8_t *cmd)
 {
 	char *data = (char *)cmd;
-	volatile RADIO_ATTR *m_radio_param = radio_get_cur_param();
-	uint32_t work_mode = m_radio_param->mode;
+	RADIO_ATTR *m_radio_param = radio_get_cur_param();
+	uint32_t work_mode = *(volatile uint32_t *)&m_radio_param->mode;
 
 	work_mode = m_radio_param->mode;
 	sprintf(data, "AT+MODE=%lu\r\n\r\nOK\r\n", work_mode);
@@ -127,7 +127,7 @@ uint32_t user_cmd_get_workmode(uint32_t com, uint8_t *cmd)
 uint32_t user_cmd_set_workmode(uint32_t com, uint8_t *cmd)
 {
 	char *data = (char *)cmd;
-	volatile RADIO_ATTR *m_radio_param = radio_get_cur_param();
+	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	int work_mode = 0;
 	if (sscanf(data, "AT+MODE=%d\r\n", &work_mode) < 1)
 	{
@@ -151,7 +151,7 @@ uint32_t user_cmd_set_workmode(uint32_t com, uint8_t *cmd)
 uint32_t user_cmd_set_type(uint32_t com, uint8_t *cmd)
 {
 	char *data = (char *)cmd;
-	volatile RADIO_ATTR *m_radio_param = radio_get_cur_param();
+	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	int radio_type = 0;
 	if (sscanf(data, "AT+TYPE=%d\r\n", &radio_type) < 1)
 	{
@@ -172,7 +172,7 @@ uint32_t user_cmd_get_type(uint32_t com, uint8_t *cmd)
 {
 	char *data = (char *)cmd;
 
-	volatile RADIO_ATTR *m_radio_param = radio_get_cur_param();
+	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	sprintf(data, "AT+TYPE=%lu\r\n\r\nOK\r\n", m_radio_param->type);
 
 	return strlen(data);
@@ -181,7 +181,7 @@ uint32_t user_cmd_get_type(uint32_t com, uint8_t *cmd)
 uint32_t user_cmd_set_txpower(uint32_t com, uint8_t *cmd)
 {
 	char *data = (char *)cmd;
-	volatile RADIO_ATTR *m_radio_param = radio_get_cur_param();
+	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	int power_level = 0;
 	if (sscanf(data, "AT+PWR=%d\r\n", &power_level) < 1)
 	{
@@ -200,7 +200,7 @@ uint32_t user_cmd_set_txpower(uint32_t com, uint8_t *cmd)
 
 uint32_t user_cmd_get_txpower(uint32_t com, uint8_t *cmd)
 {
-	volatile RADIO_ATTR *m_radio_param = radio_get_cur_param();
+	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	char *data = (char *)cmd;
 
 	sprintf(data, "AT+PWR=%lu\r\n\r\nOK\r\n", m_radio_param->power_level);
@@ -211,7 +211,7 @@ uint32_t user_cmd_get_txpower(uint32_t com, uint8_t *cmd)
 uint32_t user_cmd_set_frq(uint32_t com, uint8_t *cmd)
 {
 	char *data = (char *)cmd;
-	volatile RADIO_ATTR *m_radio_param = radio_get_cur_param();
+	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 //	int chl = 0;
 	int tx_frq_m, rx_frq_m;
 	int tx_frq_k, rx_frq_k;
@@ -235,7 +235,7 @@ uint32_t user_cmd_set_frq(uint32_t com, uint8_t *cmd)
 
 uint32_t user_cmd_get_frq(uint32_t com, uint8_t *cmd)
 {
-	volatile RADIO_ATTR *m_radio_param = radio_get_cur_param();
+	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 
 	char *data = (char *)cmd;
 
@@ -249,7 +249,7 @@ uint32_t user_cmd_get_frq(uint32_t com, uint8_t *cmd)
 uint32_t user_cmd_set_frqband(uint32_t com, uint8_t *cmd)
 {
 	char *data = (char *)cmd;
-	volatile RADIO_ATTR *m_radio_param = radio_get_cur_param();
+	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	int tx_bnd = 500, rx_bnd=500;
 
 	if (sscanf(data, "AT+BAND=%d %d\r\n", &tx_bnd, &tx_bnd) < 2)
@@ -270,7 +270,7 @@ uint32_t user_cmd_set_frqband(uint32_t com, uint8_t *cmd)
 
 uint32_t user_cmd_get_frqband(uint32_t com, uint8_t *cmd)
 {
-	volatile RADIO_ATTR *m_radio_param = radio_get_cur_param();
+	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	char *data = (char *)cmd;
 
 	sprintf(data, "AT+BAND=%lu %lu\r\n\r\nOK\r\n",
@@ -281,7 +281,7 @@ uint32_t user_cmd_get_frqband(uint32_t com, uint8_t *cmd)
 uint32_t user_cmd_set_bps(uint32_t com, uint8_t *cmd)
 {
 	char *data = (char *)cmd;
-	volatile RADIO_ATTR *m_radio_param = radio_get_cur_param();
+	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	int bps;
 
 	if (sscanf(data, "AT+BPS=%d\r\n", &bps) < 1)
@@ -301,7 +301,7 @@ uint32_t user_cmd_set_bps(uint32_t com, uint8_t *cmd)
 
 uint32_t user_cmd_get_bps(uint32_t com, uint8_t *cmd)
 {
-	volatile RADIO_ATTR *m_radio_param = radio_get_cur_param();
+	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	char *data = (char *)cmd;
 
 	sprintf(data, "AT+BPS=%lu\r\n\r\nOK\r\n",
@@ -506,7 +506,7 @@ bool usr_cmd_is_trans_tx(void)
 	bool isTransTx = false;
 	if (s_cmd_decode[cmd_com].state == TRNS)
 	{
-		volatile RADIO_ATTR *m_radio_param = radio_get_cur_param();
+		RADIO_ATTR *m_radio_param = radio_get_cur_param();
 		if (m_radio_param->mode == RADIO_MODE_TX)
 		{
 			isTransTx = true;
@@ -518,7 +518,7 @@ bool usr_cmd_is_trans_tx(void)
 uint32_t user_cmd_set_dprt(uint32_t com, uint8_t *cmd)
 {
 	char *data = (char *)cmd;
-	volatile RADIO_ATTR *m_radio_param = radio_get_cur_param();
+	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	int dprt;
 
 	if (sscanf(data, "AT+DPRT=%d\r\n", &dprt) < 1)
@@ -554,7 +554,7 @@ uint32_t user_cmd_get_radio_attr(uint32_t com, uint8_t *cmd)
 	// \r\nOK\r\n             6
 	// NULL                   1
 
-	volatile RADIO_ATTR *m_radio_param = radio_get_cur_param();
+	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	sprintf(data, "RADIO_ATTR:\r\n");
 	sprintf(data + strlen(data), "version: %lu\r\n", m_radio_param->version);
 	sprintf(data + strlen(data), "mode:    %lu\r\n", m_radio_param->mode);
@@ -573,7 +573,7 @@ uint32_t user_cmd_get_radio_attr(uint32_t com, uint8_t *cmd)
 uint32_t user_cmd_set_radio_attr_save(uint32_t com, uint8_t *cmd)
 {
 	char *data = (char *)cmd;
-	volatile RADIO_ATTR *m_radio_param = radio_get_cur_param();
+	RADIO_ATTR *m_radio_param = radio_get_cur_param();
 	int enable;
 
 	if (sscanf(data, "AT+SAVE=%d\r\n", &enable) < 1)

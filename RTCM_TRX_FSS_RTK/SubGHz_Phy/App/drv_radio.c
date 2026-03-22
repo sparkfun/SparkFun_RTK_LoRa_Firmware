@@ -28,9 +28,9 @@
 #include "drv_flash.h"
 #include "rtcm_crc.h"
 
-volatile static RADIO_ATTR s_radio_attr UTIL_MEM_ALIGN(8);
-volatile static RADIO_ATTR s_radio_attr_flash UTIL_MEM_ALIGN(8);
-volatile static RADIO_INFO s_radio_info;
+RADIO_ATTR s_radio_attr;
+RADIO_ATTR s_radio_attr_flash;
+RADIO_INFO s_radio_info;
 static CFIFO  tx_fifo;
 #define MAX_SEND_SIZE  2048
 #define MAX_DECODE_LEN  2048
@@ -386,12 +386,12 @@ static void OnRxError(void)
 	}
 }
 
-volatile RADIO_ATTR *radio_get_cur_param(void)
+RADIO_ATTR *radio_get_cur_param(void)
 {
 	return &s_radio_attr;
 }
 
-volatile RADIO_INFO *radio_get_sys_param(void)
+RADIO_INFO *radio_get_sys_param(void)
 {
 	return &s_radio_info;
 }

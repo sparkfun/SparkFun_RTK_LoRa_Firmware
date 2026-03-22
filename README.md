@@ -40,7 +40,7 @@ This ensures that when you add a new entry in RADIO_ATTR, it gets initialized pr
 
 Fix ```STMFLASH_Write``` so it correctly erases the sector before writing the radio attributes.
 
-Made ```RADIO_ATTR s_radio_attr``` ```volatile``` to prevent it being optimised out and not accessible to
+Made everything in ```RADIO_ATTR s_radio_attr``` ```volatile``` to prevent it being optimised and not accessible to
 the user command callbacks.
 
 Added the ```AT+SAVE``` command. ```enable_save``` defaults to disabled, avoiding unneeded flash writes.

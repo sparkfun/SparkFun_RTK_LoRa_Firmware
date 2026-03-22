@@ -20,7 +20,7 @@ typedef uint32_t (*USER_CMD_CB)(uint32_t com, uint8_t *cmd);
 #define CMD_AT_ASK "?"
 
 #define CMD_REQ_MAX_LEN 64
-#define CMD_RSP_MAX_LEN 191 // user_cmd_get_radio_attr can return ~150 bytes
+#define CMD_RSP_MAX_LEN 191 // user_cmd_get_radio_attr can return ~154 bytes
 
 #define PROT_LORA  3 // 38400bps 6000hz 12000hz
 
@@ -43,6 +43,7 @@ typedef enum
 	USR_CMD_ID_AT_BPS,	// unit:hundred 19200 // 19200 38400 62500
 	USR_CMD_ID_AT_DPRT,	// Data Port: 0:UART1 (Torch) 1:UART2 (Facet FP)
 	USR_CMD_ID_AT_ATTR,
+	USR_CMD_ID_AT_SAVE,
 	// Add new commands above this line
 } USR_CMD_ID;
 
@@ -103,6 +104,7 @@ uint32_t user_cmd_get_bps(uint32_t com, uint8_t *cmd);
 uint32_t user_cmd_set_dprt(uint32_t com, uint8_t *cmd);
 
 uint32_t user_cmd_get_radio_attr(uint32_t com, uint8_t *cmd);
+uint32_t user_cmd_set_radio_attr_save(uint32_t com, uint8_t *cmd);
 
 uint32_t send_cmd_rsp(const uint8_t *data, const uint16_t len);
 

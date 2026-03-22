@@ -61,10 +61,10 @@ typedef struct _RADIO_ATTR
 	volatile int stop_rtcm;
 	volatile int inited;
 	volatile int switching;
-	volatile int padding1;
+	volatile int enable_save;
 
 	uint32_t stepper[2];
-	uint32_t bandwith[2];
+	uint32_t bandwidth[2];
 
 	uint32_t prot[2];
 	uint32_t res[2];
@@ -83,7 +83,7 @@ typedef struct _RADIO_ATTR
 	uint32_t fhss;
 	
 	uint32_t dprt; // 0:UART1 1:UART2
-	uint32_t padding2;
+	uint32_t padding; // Available
 	uint32_t flash_writes;
 	uint32_t tail; // Last, for easy identification in CubeProgrammer
 } RADIO_ATTR;
@@ -97,13 +97,13 @@ typedef struct __system_param
 	char software_date[16];
 } RADIO_INFO;
 
-RADIO_ATTR *radio_get_cur_param(void);
+volatile RADIO_ATTR *radio_get_cur_param(void);
 
 uint32_t radio_init(void);
 
 uint32_t radio_param_cfg(void);
 
-RADIO_INFO *radio_get_sys_param(void);
+volatile RADIO_INFO *radio_get_sys_param(void);
 
 int pub_rtcm(uint8_t *data, const uint16_t len);
 

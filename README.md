@@ -38,13 +38,21 @@ Replace ```PORT_NUM``` with ```radio_param->dprt```
 In RADIO_ATTR (stored in flash): add the version to trigger re-initialization when the version changes.
 This ensures that when you add a new entry in RADIO_ATTR, it gets initialized properly.
 
+Fix ```STMFLASH_Write``` so it correctly erases the sector before writing the radio attributes.
+
+Made ```RADIO_ATTR s_radio_attr``` ```volatile``` to prevent it being optimised out and not accessible to
+the user command callbacks.
+
+Added the ```AT+SAVE``` command. ```enable_save``` defaults to disabled, avoiding unneeded flash writes.
+Send ```AT+SAVE=1``` to enable saving to flash each time ```AT+TRANS``` starts the transfer.
+
 Changed the version to ```VERSION "3.0.1"```
 
 Using STM32CubeIDE Version: 2.1.0
 
 In the project properties \ C/C++ Build \ Settings \ MCU/MPU Post build outputs:
 * Select "Convert to binary file" and "Convert to Intel Hex file"
-* The Intel Hex file is useful as it contains the 0x8000000 start address for the CubeProgrammer
+* The Intel Hex file is useful as it contains the 0x08000000 start address for the CubeProgrammer
 
 Building RTCM_TRX_FSS_RTK\STM32CubeIDE\.project produces:
 * ```LoRa-lora_hop\LoRa-lora_hop\RTCM_TRX_FSS_RTK\STM32CubeIDE\Debug\RTCM_TRX.bin``` / ```.elf``` / ```.hex``` / ```.list``` / ```.map```
@@ -57,6 +65,8 @@ Set RTK unit to LoRa direct connect (s h 17) to connect STM32WL55 UART to USB th
 * On Facet FP: the STM32WL55 is programmed via UART2
 
 Use STM32CubeProgrammer v2.22.0 to program the .hex onto the STM32WL55
+
+If you want to see the saved radio attributes, read (at least) 64 bytes from address **0x0803e800**
 
 Set the Base RTK unit to Base (Survey-In) and enable LoRa (TX) at 910MHz
 

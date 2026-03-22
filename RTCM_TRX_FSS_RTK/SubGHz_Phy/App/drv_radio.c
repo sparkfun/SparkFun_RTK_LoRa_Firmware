@@ -28,9 +28,9 @@
 #include "drv_flash.h"
 #include "rtcm_crc.h"
 
-static RADIO_ATTR s_radio_attr UTIL_MEM_ALIGN(8);
-static RADIO_ATTR s_radio_attr_flash UTIL_MEM_ALIGN(8);
-static RADIO_INFO s_radio_info;
+volatile static RADIO_ATTR s_radio_attr UTIL_MEM_ALIGN(8);
+volatile static RADIO_ATTR s_radio_attr_flash UTIL_MEM_ALIGN(8);
+volatile static RADIO_INFO s_radio_info;
 static CFIFO  tx_fifo;
 #define MAX_SEND_SIZE  2048
 #define MAX_DECODE_LEN  2048
@@ -386,12 +386,12 @@ static void OnRxError(void)
 	}
 }
 
-RADIO_ATTR *radio_get_cur_param(void)
+volatile RADIO_ATTR *radio_get_cur_param(void)
 {
 	return &s_radio_attr;
 }
 
-RADIO_INFO *radio_get_sys_param(void)
+volatile RADIO_INFO *radio_get_sys_param(void)
 {
 	return &s_radio_info;
 }
@@ -609,10 +609,13 @@ static bool is_diff_app_cfg() // Returns true if s_radio_attr_flash != s_radio_a
 {
 	bool ret = false;
 	if(s_radio_attr_flash.magic != s_radio_attr.magic
+			||s_radio_attr_flash.enable_save != s_radio_attr.enable_save
 			||s_radio_attr_flash.mode != s_radio_attr.mode
 			||s_radio_attr_flash.bps != s_radio_attr.bps
 			||s_radio_attr_flash.freq[0] != s_radio_attr.freq[0]
 			||s_radio_attr_flash.freq[1] != s_radio_attr.freq[1]
+			||s_radio_attr_flash.bandwidth[0] != s_radio_attr.bandwidth[0]
+			||s_radio_attr_flash.bandwidth[1] != s_radio_attr.bandwidth[1]
 			||s_radio_attr_flash.wlbaud[0] != s_radio_attr.wlbaud[0]
 			||s_radio_attr_flash.wlbaud[1] != s_radio_attr.wlbaud[1]
 		    ||s_radio_attr_flash.power_level != s_radio_attr.power_level
@@ -706,16 +709,21 @@ uint32_t radio_param_cfg(void)
 			s_radio_attr.fhss = 0x00;
 		}
 #endif
-		}
-	//diff cfg values
-	if(is_diff_app_cfg()) // Returns true if s_radio_attr_flash != s_radio_attr
+	}
+
+	// diff cfg values : is_diff_app_cfg returns true if s_radio_attr_flash != s_radio_attr
+	// Save if the values are different and enable_save is enabled
+	// Also save if enable_save has changed. I.e. save one last time when enable_save was
+	// enabled but has been disabled
+	if(is_diff_app_cfg() && ((s_radio_attr.enable_save > 0)
+		|| (s_radio_attr_flash.enable_save != s_radio_attr.enable_save)))
 	{
 		APP_LOG(TS_ON, VLEVEL_M,"diff app cfg\r\n");
 
 		s_radio_attr.flash_writes = s_radio_attr.flash_writes + 1; // Increment write count before copy and write
 
-		memcpy(&s_radio_attr_flash, &s_radio_attr, sizeof(s_radio_attr));
-		//s_radio_attr_flash = s_radio_attr;
+		//memcpy(&s_radio_attr_flash, &s_radio_attr, sizeof(s_radio_attr));
+		s_radio_attr_flash = s_radio_attr;
 		APP_LOG(TS_ON, VLEVEL_M,"attr_flash: magic %x mode %d bps %d freq %d %d wlbaud %d %d level %d dprt %d \r\n",
 				s_radio_attr_flash.magic,s_radio_attr_flash.mode,
 				s_radio_attr_flash.bps,s_radio_attr_flash.freq[0],s_radio_attr_flash.freq[1],
@@ -1353,11 +1361,12 @@ uint32_t radio_init(void)
 	s_radio_attr.type = 0;
 	s_radio_attr.switching = true; // true
 	s_radio_attr.stop_rtcm = 0x01; // 0x01
+	s_radio_attr.enable_save = 0;
 	s_radio_attr.mode = RADIO_MODE_RX;
 	s_radio_attr.freq[0] = 915000000;
 	s_radio_attr.freq[1] = 915000000;
-	s_radio_attr.bandwith[0] = 250;
-	s_radio_attr.bandwith[1] = 250;
+	s_radio_attr.bandwidth[0] = 250;
+	s_radio_attr.bandwidth[1] = 250;
 	s_radio_attr.bps = 38400;
 	s_radio_attr.prot[1] = s_radio_attr.prot[0] = PROT_LORA;
 	s_radio_attr.power_level = 10; //default 10 dbm
@@ -1374,17 +1383,18 @@ uint32_t radio_init(void)
         || (s_radio_attr_flash.tail != 0xbeefdead))
 	{
 		APP_LOG(TS_ON,VLEVEL_M,"app cfg  first time init\r\n");
-		memcpy(&s_radio_attr_flash, &s_radio_attr, sizeof(s_radio_attr));
-		//s_radio_attr_flash = s_radio_attr;
+		//memcpy(&s_radio_attr_flash, &s_radio_attr, sizeof(s_radio_attr));
+		s_radio_attr_flash = s_radio_attr;
 		STMFLASH_Write(STM32_FLASH_APPCFG_BASE,(u64*)&s_radio_attr_flash,sizeof(s_radio_attr_flash)/8);
 	}
 	else
 	{
+		s_radio_attr.enable_save = 	s_radio_attr_flash.enable_save;
 		s_radio_attr.mode =         s_radio_attr_flash.mode;
 		s_radio_attr.freq[0] =      s_radio_attr_flash.freq[0];
 		s_radio_attr.freq[1] =      s_radio_attr_flash.freq[1];
-		s_radio_attr.bandwith[0] =  s_radio_attr_flash.bandwith[0];
-		s_radio_attr.bandwith[1] =  s_radio_attr_flash.bandwith[1];
+		s_radio_attr.bandwidth[0] =  s_radio_attr_flash.bandwidth[0];
+		s_radio_attr.bandwidth[1] =  s_radio_attr_flash.bandwidth[1];
 		s_radio_attr.bps =          s_radio_attr_flash.bps;
 		s_radio_attr.prot[0] =      s_radio_attr_flash.prot[0];
 		s_radio_attr.prot[1] =      s_radio_attr_flash.prot[1];

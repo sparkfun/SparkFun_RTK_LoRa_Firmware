@@ -29,6 +29,20 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32wlxx_hal.h"
 
+#include "app_common.h"
+#include "app_subghz_phy.h"
+#include "app_version.h"
+#include "drv_flash.h"
+#include "drv_radio.h"
+#include "drv_uart.h"
+#include "hc_type.h"
+#include "ring_buffer.h"
+#include "rtcm_crc.h"
+#include "subghz_phy_app.h"
+#include "usr_cmd.h"
+#include "gpio.h"
+#include "usart.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 

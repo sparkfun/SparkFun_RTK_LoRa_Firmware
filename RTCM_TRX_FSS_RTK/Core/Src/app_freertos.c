@@ -147,6 +147,7 @@ void StartDefaultTask(void *argument)
     /* init code for SubGHz_Phy */
  
   radio_init();
+
   /* Infinite loop */
   // for (;;)
   // {
@@ -160,7 +161,9 @@ void StartDefaultTask(void *argument)
   //   osDelay(100);
   //   APP_LOG(TS_ON,VLEVEL_M,"--loop----Free heap memory: %d bytes------\r\n", xPortGetFreeHeapSize());
   // }
+
   APP_LOG(TS_ON,VLEVEL_M,"--loop----Free heap memory: %d bytes------\r\n", xPortGetFreeHeapSize());
+  
   vTaskDelete(NULL);
   /* USER CODE END StartDefaultTask */
 }

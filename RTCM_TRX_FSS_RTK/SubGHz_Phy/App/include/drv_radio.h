@@ -82,39 +82,39 @@ typedef enum
 
 typedef struct _RADIO_ATTR
 {
-	volatile uint32_t magic;
-	volatile uint32_t version;
-	volatile uint32_t payload_len;// from  type to fhss
-	volatile uint32_t crc32;
+	uint32_t magic;
+	uint32_t version;
+	uint32_t payload_len; // Not used... Perhaps included for flash reads / writes?
+	uint32_t crc32; // Not used... Perhaps included for flash reads / writes?
 
 	volatile int stop_rtcm;
 	volatile int inited;
 	volatile int switching;
 	volatile int enable_save;
 
-	volatile uint32_t stepper[2];
-	volatile uint32_t bandwidth[2];
+	uint32_t stepper[2];
+	uint32_t bandwidth[2];
 
-	volatile uint32_t prot[2];
-	volatile uint32_t res[2];
+	uint32_t prot[2];
+	uint32_t res[2];
 
-	volatile uint32_t freq[2];
-	volatile uint32_t wlbaud[2]; // air bps
+	uint32_t freq[2];
+	uint32_t wlbaud[2]; // air bps
 
-	volatile uint32_t type; // 0: lora 1: uhf
-	volatile uint32_t mode; // RADIO_MODE_TX RADIO_MODE_RX
-	volatile uint32_t bps;
-	volatile uint32_t advanced;
+	uint32_t type; // 0: lora 1: uhf
+	uint32_t mode; // RADIO_MODE_TX RADIO_MODE_RX
+	uint32_t bps;
+	uint32_t advanced;
 
-	volatile uint32_t combaud;	// com bps
-	volatile uint32_t power_level;
-	volatile uint32_t crc_num;
-	volatile uint32_t fhss;
+	uint32_t combaud;	// com bps
+	uint32_t power_level;
+	uint32_t crc_num;
+	uint32_t fhss; // Frequency Hopping Spread Spectrum?
 	
-	volatile uint32_t dprt; // 0:UART1 1:UART2
-	volatile uint32_t padding; // Available
-	volatile uint32_t flash_writes;
-	volatile uint32_t tail; // Last, for easy identification in CubeProgrammer
+	uint32_t dprt; // 0:UART1 1:UART2
+	uint32_t padding; // Available
+	uint32_t flash_writes;
+	uint32_t tail; // Last, for easy identification in CubeProgrammer
 } RADIO_ATTR;
 
 typedef struct __system_param

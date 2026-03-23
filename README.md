@@ -46,6 +46,8 @@ the user command callbacks.
 Added the ```AT+SAVE``` command. ```enable_save``` defaults to disabled, avoiding unneeded flash writes.
 Send ```AT+SAVE=1``` to enable saving to flash each time ```AT+TRANS``` starts the transfer.
 
+Fixed ```s_radio_attr.inited``` . This was being set too early.
+
 Changed the version to ```VERSION "3.0.1"```
 
 Using STM32CubeIDE Version: 2.1.0

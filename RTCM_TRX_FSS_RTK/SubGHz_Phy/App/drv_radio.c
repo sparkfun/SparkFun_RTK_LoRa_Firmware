@@ -28,9 +28,9 @@
 // #include "drv_flash.h"
 // #include "rtcm_crc.h"
 
-RADIO_ATTR s_radio_attr;
-RADIO_ATTR s_radio_attr_flash;
-RADIO_INFO s_radio_info;
+static RADIO_ATTR s_radio_attr;
+static RADIO_ATTR s_radio_attr_flash;
+static RADIO_INFO s_radio_info;
 static CFIFO  tx_fifo;
 #define MAX_SEND_SIZE  2048
 #define MAX_DECODE_LEN  2048
@@ -463,7 +463,7 @@ static int cfg_lora_rx_mode(uint32_t freq_hz, uint32_t band_id,uint32_t sf,uint8
 #define FHSS_FIRST_FREQ_KHZ 902250000
 #endif
 
-static bool  is_fhss_need(uint32_t freq_hz)
+static bool is_fhss_need(uint32_t freq_hz)
 {
 	if(freq_hz > FHSS_START_FREQ && freq_hz < FHSS_STOP_FREQ)
 	{
@@ -616,8 +616,8 @@ static bool is_diff_app_cfg() // Returns true if s_radio_attr_flash != s_radio_a
 			||s_radio_attr_flash.freq[1] != s_radio_attr.freq[1]
 			||s_radio_attr_flash.bandwidth[0] != s_radio_attr.bandwidth[0]
 			||s_radio_attr_flash.bandwidth[1] != s_radio_attr.bandwidth[1]
-			||s_radio_attr_flash.wlbaud[0] != s_radio_attr.wlbaud[0]
-			||s_radio_attr_flash.wlbaud[1] != s_radio_attr.wlbaud[1]
+			// ||s_radio_attr_flash.wlbaud[0] != s_radio_attr.wlbaud[0]
+			// ||s_radio_attr_flash.wlbaud[1] != s_radio_attr.wlbaud[1]
 		    ||s_radio_attr_flash.power_level != s_radio_attr.power_level
 		    ||s_radio_attr_flash.dprt != s_radio_attr.dprt)
 	{
@@ -722,16 +722,17 @@ uint32_t radio_param_cfg(void)
 
 		s_radio_attr.flash_writes = s_radio_attr.flash_writes + 1; // Increment write count before copy and write
 
-		//memcpy(&s_radio_attr_flash, &s_radio_attr, sizeof(s_radio_attr));
-		s_radio_attr_flash = s_radio_attr;
-		APP_LOG(TS_ON, VLEVEL_M,"attr_flash: magic %x mode %d bps %d freq %d %d wlbaud %d %d level %d dprt %d \r\n",
+		memcpy(&s_radio_attr_flash, &s_radio_attr, sizeof(s_radio_attr));
+		//s_radio_attr_flash = s_radio_attr;
+		APP_LOG(TS_ON, VLEVEL_M,"attr_flash: magic %x mode %d bps %d freq %d %d level %d dprt %d \r\n",
 				s_radio_attr_flash.magic,s_radio_attr_flash.mode,
 				s_radio_attr_flash.bps,s_radio_attr_flash.freq[0],s_radio_attr_flash.freq[1],
-				s_radio_attr_flash.wlbaud[0],s_radio_attr_flash.wlbaud[1],s_radio_attr_flash.power_level,
-				s_radio_attr_flash.dprt);
+				s_radio_attr_flash.power_level, s_radio_attr_flash.dprt);
 
 		STMFLASH_Write(STM32_FLASH_APPCFG_BASE,(u64*)&s_radio_attr_flash,sizeof(s_radio_attr_flash)/8);
 	}
+
+	s_radio_attr.inited = 0x01; // Finally, flag that the radio is inited
 
 	return 0;
 }
@@ -831,7 +832,7 @@ static void pull_rtcm_to_uart_handler(void *arg)
 	OS_DELAY_MS(400);
 	if(s_radio_attr.mode != RADIO_MODE_END)
 	{
-		APP_LOG(TS_ON,VLEVEL_M," init raido with app_cfg ---Free heap memory: %d bytes\r\n",xPortGetFreeHeapSize());
+		APP_LOG(TS_ON,VLEVEL_M," init radio with app_cfg ---Free heap memory: %d bytes\r\n",xPortGetFreeHeapSize());
 		init_app_cfg_to_radio();
 	}
 	TickType_t wait_tick = portMAX_DELAY;
@@ -1313,12 +1314,44 @@ int pub_rtcm(uint8_t *data, const uint16_t len)
 
 uint32_t radio_init(void)
 {
+	// Initialize s_radio_attr now, before we do anything else
+	// Trigger first time initialization when the version changes
+	char versionStr[7]; // 3.0.1 plus NULL
+	sprintf(versionStr, "%s", VERSION);
+	int verMajor;
+	int verMinor;
+	int verPatch;
+	sscanf(versionStr, "%d.%d.%d", &verMajor, &verMinor, &verPatch);
+	uint32_t verInt = ((uint32_t)verMajor * 100) + ((uint32_t)verMinor * 10) + ((uint32_t)verPatch * 1);
+
+	s_radio_attr.magic = 0xfeedbeef;
+	s_radio_attr.version = verInt;
+	s_radio_attr.inited = 0x00; // Ensure the inited flag is clear
+	s_radio_attr.type = 0; // 0: lora 1: uhf
+	s_radio_attr.switching = true; // true
+	s_radio_attr.stop_rtcm = 0x01; // 0x01
+	s_radio_attr.enable_save = 0;
+	s_radio_attr.mode = RADIO_MODE_RX;
+	s_radio_attr.freq[0] = 915000000;
+	s_radio_attr.freq[1] = 915000000;
+	s_radio_attr.bandwidth[0] = 250;
+	s_radio_attr.bandwidth[1] = 250;
+	s_radio_attr.bps = 38400;
+	s_radio_attr.prot[1] = s_radio_attr.prot[0] = PROT_LORA;
+	s_radio_attr.power_level = 10; //default 10 dbm
+	s_radio_attr.fhss = 0x00; // Clear the Frequency Hopping Spread Spectrum flag
+	s_radio_attr.dprt = COM_PORT_IDX; // default 1:UART2 for Torch
+	s_radio_attr.flash_writes = 0;
+	s_radio_attr.tail = 0xbeefdead; // Last, for easy identification
+
+
 	BaseType_t xret;
-	s_radio_attr.inited = 0x00;
-	s_radio_attr.fhss = 0x00;
 
 	rtcmEvent = xEventGroupCreate();
-	radio_hal_init();
+
+	radio_hal_init(); // This calls Radio.Init
+
+	// Create the pull and publish tasks
 	//OS_DELAY_MS(50);
 	pullMsgHandler = xQueueCreate(UHF_RX_QUEUE_NUM, UHF_TRANS_ITEM_SIZE);
 	pubMsgHandler = xQueueCreate(UHF_TX_QUEUE_NUM, sizeof(uint32_t));
@@ -1342,53 +1375,31 @@ uint32_t radio_init(void)
 	xEventGroupSetBits(rtcmEvent, RADIO_EVT_RCV_DONE);
 	xEventGroupSetBits(rtcmEvent, RADIO_EVT_SEND_DONE);
 
-	
 	init_led();
 	APP_LOG(TS_ON,VLEVEL_M,"---after pull task ---Free heap memory: %d bytes------\r\n", xPortGetFreeHeapSize());
 
-	// Trigger first time initialization when the version changes
-	char versionStr[7]; // 3.0.1 plus NULL
-	sprintf(versionStr, "%s", VERSION);
-	int verMajor;
-	int verMinor;
-	int verPatch;
-	sscanf(versionStr, "%d.%d.%d", &verMajor, &verMinor, &verPatch);
-	uint32_t verInt = ((uint32_t)verMajor * 100) + ((uint32_t)verMinor * 10) + ((uint32_t)verPatch * 1);
-
-	s_radio_attr.magic = 0xfeedbeef;
-	s_radio_attr.version = verInt;
-	s_radio_attr.inited = 0x01;
-	s_radio_attr.type = 0;
-	s_radio_attr.switching = true; // true
-	s_radio_attr.stop_rtcm = 0x01; // 0x01
-	s_radio_attr.enable_save = 0;
-	s_radio_attr.mode = RADIO_MODE_RX;
-	s_radio_attr.freq[0] = 915000000;
-	s_radio_attr.freq[1] = 915000000;
-	s_radio_attr.bandwidth[0] = 250;
-	s_radio_attr.bandwidth[1] = 250;
-	s_radio_attr.bps = 38400;
-	s_radio_attr.prot[1] = s_radio_attr.prot[0] = PROT_LORA;
-	s_radio_attr.power_level = 10; //default 10 dbm
-	s_radio_attr.dprt = COM_PORT_IDX; // default 1:UART2 for Torch
-	s_radio_attr.flash_writes = 0;
-	s_radio_attr.tail = 0xbeefdead; // Last, for easy identification
-
+	// Now read the settings from flash into s_radio_attr_flash
 	//APP_LOG(TS_ON,VLEVEL_M,"attr size=%d \r\n",sizeof(s_radio_attr_flash));
 	STMFLASH_Read(STM32_FLASH_APPCFG_BASE,(u64*)&s_radio_attr_flash,sizeof(s_radio_attr_flash)/8);
 
 	APP_LOG(TS_ON,VLEVEL_M,"flash magic:0x%x \r\n",s_radio_attr_flash.magic);
 	APP_LOG(TS_ON,VLEVEL_M,"flash version:%d \r\n",s_radio_attr_flash.version);
+
+	// Check if the s_radio_attr_flash is valid and the version matches
+	// TODO: make use of .payload_len and .crc32 here
 	if((s_radio_attr_flash.magic != 0xfeedbeef) || (s_radio_attr_flash.version != verInt)
         || (s_radio_attr_flash.tail != 0xbeefdead))
 	{
 		APP_LOG(TS_ON,VLEVEL_M,"app cfg  first time init\r\n");
-		//memcpy(&s_radio_attr_flash, &s_radio_attr, sizeof(s_radio_attr));
-		s_radio_attr_flash = s_radio_attr;
+		// Copy the default settings from s_radio_attr into s_radio_attr and write to flash
+		memcpy(&s_radio_attr_flash, &s_radio_attr, sizeof(s_radio_attr));
+		//s_radio_attr_flash = s_radio_attr;
 		STMFLASH_Write(STM32_FLASH_APPCFG_BASE,(u64*)&s_radio_attr_flash,sizeof(s_radio_attr_flash)/8);
 	}
 	else
 	{
+		// s_radio_attr_flash is valid. Copy the non-volatile fields into s_radio_attr
+		// Note: inited is _not_ copied... To ensure radio is inited each time
 		s_radio_attr.enable_save = 	s_radio_attr_flash.enable_save;
 		s_radio_attr.mode =         s_radio_attr_flash.mode;
 		s_radio_attr.freq[0] =      s_radio_attr_flash.freq[0];
@@ -1413,7 +1424,7 @@ uint32_t radio_init(void)
 
 	if(s_radio_attr.mode != RADIO_MODE_END)
 	{
-		//init_app_cfg_to_radio();
+		; //init_app_cfg_to_radio();
 	}
 	APP_LOG(TS_ON,VLEVEL_M,"RADIO V%s INIT OK ---Free heap memory: %d bytes-----\r\n",VERSION,xPortGetFreeHeapSize());
 	return 0;

@@ -115,11 +115,10 @@ uint32_t user_cmd_get_cfg(uint32_t com, uint8_t *cmd)
 uint32_t user_cmd_get_workmode(uint32_t com, uint8_t *cmd)
 {
 	char *data = (char *)cmd;
-	RADIO_ATTR *m_radio_param = radio_get_cur_param();
-	uint32_t work_mode = *(volatile uint32_t *)&m_radio_param->mode;
 
-	work_mode = m_radio_param->mode;
-	sprintf(data, "AT+MODE=%lu\r\n\r\nOK\r\n", work_mode);
+	RADIO_ATTR *m_radio_param = radio_get_cur_param();
+
+	sprintf(data, "AT+MODE=%lu\r\n\r\nOK\r\n", m_radio_param->mode);
 
 	return strlen(data);
 }
@@ -527,7 +526,7 @@ uint32_t user_cmd_set_dprt(uint32_t com, uint8_t *cmd)
 	}
 	else
 	{
-		m_radio_param->dprt = dprt;
+		m_radio_param->dprt = (uint32_t)dprt;
 		sprintf(data + strlen(data), "%s", CMD_STR_OK);
 		// todo
 		//radio_param_cfg();
@@ -582,7 +581,7 @@ uint32_t user_cmd_set_radio_attr_save(uint32_t com, uint8_t *cmd)
 	}
 	else
 	{
-		m_radio_param->enable_save = enable;
+		m_radio_param->enable_save = (uint32_t)enable;
 		sprintf(data + strlen(data), "%s", CMD_STR_OK);
 		// todo
 		//radio_param_cfg();

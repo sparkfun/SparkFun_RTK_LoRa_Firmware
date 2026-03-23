@@ -1,7 +1,27 @@
 #ifndef __DRV_UART_H__
 #define __DRV_UART_H__
+
 #include "usart.h"
 #include <stdarg.h>
+#include <string.h>
+
+//#include "main.h"
+#include "cmsis_os.h"
+// #include "queue.h"
+#include "event_groups.h"
+#include "stm32_systime.h"
+// #include "queue.h"
+// #include "app_common.h"
+// #include "stm32wlxx_hal.h"
+#include "radio.h"
+// #include "drv_radio.h"
+// #include "sys_app.h"
+// #include "usart.h"
+#include "dma.h"
+// #include "stm32wlxx_hal_uart.h"
+// #include "utilities_conf.h"
+#include "usr_cmd.h"
+
 
 //#define UART_DMA_IDLE_MODE  1
 typedef int (* drv_uart_read_cb_t)(uint8_t *data, const uint16_t len);

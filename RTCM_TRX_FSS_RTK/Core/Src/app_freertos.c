@@ -20,18 +20,18 @@
 /* Includes ------------------------------------------------------------------*/
 #include "FreeRTOS.h"
 #include "task.h"
-#include "main.h"
-#include "cmsis_os.h"
+//#include "main.h"
+//#include "cmsis_os.h"
 
 #include "app_subghz_phy.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "drv_uart.h"
+//#include "drv_uart.h"
 #include "drv_radio.h"
-#include "usr_cmd.h"
-#include "stdarg.h"
-#include "app_common.h"
+//#include "usr_cmd.h"
+//#include "stdarg.h"
+//#include "app_common.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

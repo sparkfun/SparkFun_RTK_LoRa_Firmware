@@ -27,6 +27,12 @@ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
+
+// #include "platform.h"
+// #include "sys_app.h"
+#include "radio.h"
+//#include "cmsis_os.h"
+
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */

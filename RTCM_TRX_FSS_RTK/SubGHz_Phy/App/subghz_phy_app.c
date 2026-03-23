@@ -19,11 +19,11 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
-#include "platform.h"
-#include "sys_app.h"
+// #include "platform.h"
+// #include "sys_app.h"
 #include "subghz_phy_app.h"
-#include "radio.h"
-#include "cmsis_os.h"
+// #include "radio.h"
+// #include "cmsis_os.h"
 
 /* USER CODE BEGIN Includes */
 

@@ -4,6 +4,18 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+// #include <stdio.h>
+// #include "main.h"
+// #include "cmsis_os.h"
+// #include "queue.h"
+// #include "event_groups.h"
+
+#include "string.h"
+#include "drv_radio.h"
+// #include "app_common.h"
+// #include "drv_uart.h"
+// #include "sys_app.h"
+
 typedef uint32_t (*USER_CMD_CB)(uint32_t com, uint8_t *cmd);
 
 #define CMD_POWER_H RADIO_POWER_1W

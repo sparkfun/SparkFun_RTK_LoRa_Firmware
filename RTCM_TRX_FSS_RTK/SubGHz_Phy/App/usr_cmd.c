@@ -1,16 +1,16 @@
 
-#include <stdio.h>
-#include "main.h"
-#include "cmsis_os.h"
-#include "queue.h"
-#include "event_groups.h"
+// #include <stdio.h>
+// #include "main.h"
+// #include "cmsis_os.h"
+// #include "queue.h"
+// #include "event_groups.h"
 
 #include "usr_cmd.h"
-#include "string.h"
-#include "drv_radio.h"
-#include "app_common.h"
-#include "drv_uart.h"
-#include "sys_app.h"
+// #include "string.h"
+// #include "drv_radio.h"
+// #include "app_common.h"
+// #include "drv_uart.h"
+// #include "sys_app.h"
 
 #define USR_STRSTR strstr
 #define USR_STRLEN strlen

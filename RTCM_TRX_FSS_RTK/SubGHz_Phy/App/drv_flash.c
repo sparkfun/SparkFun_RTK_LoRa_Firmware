@@ -1,6 +1,6 @@
 #include "drv_flash.h"
-#include "sys_app.h"
-#include "app_common.h"
+// #include "sys_app.h"
+// #include "app_common.h"
 
 u64 STMFLASH_ReadDoubleWord(u32 faddr)
 {

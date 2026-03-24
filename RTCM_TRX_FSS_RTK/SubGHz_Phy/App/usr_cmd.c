@@ -61,17 +61,12 @@ uint32_t user_cmd_enter_trans(uint32_t com, uint8_t *cmd)
 	sprintf(data, "%s", "AT+TRANS\r\n\r\nOK\r\n");
 	ret = strlen(data);
 
-	// On Torch, it looks like the response gets gatecrashed by radio_param_cfg
-	// I see "level: 10dbm" but not "AT+TRANS OK"
-	// Send it now to make sure it gets sent
-	// We should not need to do this. TODO: figure out why the response isn't sent
-	// Maybe it is because radio_param_cfg() was writing to flash and so took a long time?
-	//send_cmd_rsp((const uint8_t *)data, ret);
-
 	// This will save RADIO_ATTR to flash if it has changed and enable_save is true
 	radio_param_cfg();
 
 	start_rtcm_trans();
+
+	// This can take ~400ms to complete
 
 	APP_LOG(TS_ON,VLEVEL_M,"enter trans\r\n");
 	return ret;

@@ -45,6 +45,13 @@ Send ```AT+SAVE=1``` to enable saving to flash each time ```AT+TRANS``` starts t
 
 Fixed ```s_radio_attr.inited``` . This was being set too early.
 
+Don't call ```init_app_cfg_to_radio()``` from ```pull_rtcm_to_uart_handler```. Let ```user_cmd_enter_trans```
+configure the radio. Previously the LoRa firmware would go into RX mode automatically after 400ms. But, on
+SparkFun products, RX should only start if LoRa is enabled. On Facet FP, this prevents LoRa corrections
+being pushed direct to the GNSS automatically / covertly. We could add a ```auto_rx_after_ms``` setting to
+restore the original behaviour and automatically start RX after a defined interval if ```AT+TRANS``` has not
+been received. TODO.
+
 Changed the version to ```VERSION "3.0.1"```
 
 Using STM32CubeIDE Version: 2.1.0

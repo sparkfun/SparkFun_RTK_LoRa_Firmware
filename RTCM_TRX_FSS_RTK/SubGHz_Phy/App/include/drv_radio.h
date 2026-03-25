@@ -92,23 +92,23 @@ typedef struct _RADIO_ATTR
 	volatile int switching;
 	volatile int enable_save;
 
-	uint32_t stepper[2];
+	uint32_t stepper[2]; // Not used
 	uint32_t bandwidth[2];
 
-	uint32_t prot[2];
-	uint32_t res[2];
+	uint32_t prot[2]; // Never changed
+	uint32_t res[2]; // Not used
 
 	uint32_t freq[2];
-	uint32_t wlbaud[2]; // air bps
+	uint32_t wlbaud[2]; // air bps. Not used
 
 	uint32_t type; // 0: lora 1: uhf
 	uint32_t mode; // RADIO_MODE_TX RADIO_MODE_RX
 	uint32_t bps;
-	uint32_t advanced;
+	uint32_t advanced; // Not used
 
-	uint32_t combaud;	// com bps
+	uint32_t combaud;	// com bps. Not used
 	uint32_t power_level;
-	uint32_t crc_num;
+	uint32_t crc_num; // Not used
 	uint32_t fhss; // Frequency Hopping Spread Spectrum?
 	
 	uint32_t dprt; // 0:UART1 1:UART2

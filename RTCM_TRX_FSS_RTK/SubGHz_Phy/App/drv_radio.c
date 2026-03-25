@@ -608,18 +608,15 @@ const RADIO_BPS_LIST BPS_TBL[BPS_NUM]=
 static bool is_diff_app_cfg() // Returns true if s_radio_attr_flash != s_radio_attr
 {
 	bool ret = false;
-	if(s_radio_attr_flash.magic != s_radio_attr.magic
-			||s_radio_attr_flash.enable_save != s_radio_attr.enable_save
-			||s_radio_attr_flash.mode != s_radio_attr.mode
-			||s_radio_attr_flash.bps != s_radio_attr.bps
-			||s_radio_attr_flash.freq[0] != s_radio_attr.freq[0]
-			||s_radio_attr_flash.freq[1] != s_radio_attr.freq[1]
-			||s_radio_attr_flash.bandwidth[0] != s_radio_attr.bandwidth[0]
-			||s_radio_attr_flash.bandwidth[1] != s_radio_attr.bandwidth[1]
-			// ||s_radio_attr_flash.wlbaud[0] != s_radio_attr.wlbaud[0]
-			// ||s_radio_attr_flash.wlbaud[1] != s_radio_attr.wlbaud[1]
-		    ||s_radio_attr_flash.power_level != s_radio_attr.power_level
-		    ||s_radio_attr_flash.dprt != s_radio_attr.dprt)
+	if(s_radio_attr_flash.enable_save != s_radio_attr.enable_save
+		||s_radio_attr_flash.bandwidth[0] != s_radio_attr.bandwidth[0]
+		||s_radio_attr_flash.bandwidth[1] != s_radio_attr.bandwidth[1]
+		||s_radio_attr_flash.mode != s_radio_attr.mode
+		||s_radio_attr_flash.bps != s_radio_attr.bps
+		||s_radio_attr_flash.freq[0] != s_radio_attr.freq[0]
+		||s_radio_attr_flash.freq[1] != s_radio_attr.freq[1]
+		||s_radio_attr_flash.power_level != s_radio_attr.power_level
+		||s_radio_attr_flash.dprt != s_radio_attr.dprt)
 	{
 		ret = true;
 	}
@@ -829,12 +826,14 @@ static void pull_rtcm_to_uart_handler(void *arg)
 	int next_hop_seq = 0;
 	//int ret = 0;
 
-	OS_DELAY_MS(400);
-	if(s_radio_attr.mode != RADIO_MODE_END)
-	{
-		APP_LOG(TS_ON,VLEVEL_M," init radio with app_cfg ---Free heap memory: %d bytes\r\n",xPortGetFreeHeapSize());
-		init_app_cfg_to_radio();
-	}
+	// See notes in radio_init
+	// Don't call init_app_cfg_to_radio() here. Wait until user sends AT+TRANS (user_cmd_enter_trans)
+	// OS_DELAY_MS(400);
+	// if(s_radio_attr.mode != RADIO_MODE_END)
+	// {
+	// 	APP_LOG(TS_ON,VLEVEL_M," init radio with app_cfg ---Free heap memory: %d bytes\r\n",xPortGetFreeHeapSize());
+	// 	init_app_cfg_to_radio();
+	// }
 	TickType_t wait_tick = portMAX_DELAY;
 #if(FHSS_HOP_SUP == 1)
 	wait_tick = pdMS_TO_TICKS(300);
@@ -1324,24 +1323,34 @@ uint32_t radio_init(void)
 	sscanf(versionStr, "%d.%d.%d", &verMajor, &verMinor, &verPatch);
 	uint32_t verInt = ((uint32_t)verMajor * 100) + ((uint32_t)verMinor * 10) + ((uint32_t)verPatch * 1);
 
+	// Set default radio attributes
 	s_radio_attr.magic = 0xfeedbeef;
 	s_radio_attr.version = verInt;
-	s_radio_attr.inited = 0x00; // Ensure the inited flag is clear
-	s_radio_attr.type = 0; // 0: lora 1: uhf
-	s_radio_attr.switching = true; // true
+	s_radio_attr.payload_len = 0; // Not used. Included for future flash read / write improvements
+	s_radio_attr.crc32 = 0; // Not used. Included for future flash read / write improvements
+
 	s_radio_attr.stop_rtcm = 0x01; // 0x01
-	s_radio_attr.enable_save = 0;
-	s_radio_attr.mode = RADIO_MODE_RX;
-	s_radio_attr.freq[0] = 915000000;
-	s_radio_attr.freq[1] = 915000000;
+	s_radio_attr.inited = 0x00; // Ensure the inited flag is clear
+	s_radio_attr.switching = true; // true
+	s_radio_attr.enable_save = 0; // Default to no saves - to avoid unneeded flash writes
+
 	s_radio_attr.bandwidth[0] = 250;
 	s_radio_attr.bandwidth[1] = 250;
-	s_radio_attr.bps = 38400;
+
 	s_radio_attr.prot[1] = s_radio_attr.prot[0] = PROT_LORA;
+
+	s_radio_attr.freq[0] = 915000000;
+	s_radio_attr.freq[1] = 915000000;
+
+	s_radio_attr.type = 0; // 0: lora 1: uhf
+	s_radio_attr.mode = RADIO_MODE_END; // Default to END, not RX
+	s_radio_attr.bps = 38400;
+
 	s_radio_attr.power_level = 10; //default 10 dbm
 	s_radio_attr.fhss = 0x00; // Clear the Frequency Hopping Spread Spectrum flag
+
 	s_radio_attr.dprt = COM_PORT_IDX; // default 1:UART2 for Torch
-	s_radio_attr.flash_writes = 0;
+	s_radio_attr.flash_writes = 0; // Reset the flash write count - for first time init
 	s_radio_attr.tail = 0xbeefdead; // Last, for easy identification
 
 
@@ -1366,7 +1375,15 @@ uint32_t radio_init(void)
 	}
 	OS_DELAY_MS(50);
 	// APP_LOG(TS_ON,VLEVEL_M,"---after pub task ---Free heap memory: %d bytes------\r\n", xPortGetFreeHeapSize());
-	xret = xTaskCreate(pull_rtcm_to_uart_handler, "pull_rtcm", 1024, NULL, DRV_UHF_RX_RTCM_TASK_PRI,
+	// Note: in the original code:
+	//       pull_rtcm_to_uart_handler would call init_app_cfg_to_radio which would call user_cmd_enter_trans
+	//       if s_radio_attr.mode != RADIO_MODE_END after OS_DELAY_MS(400).
+	//       Is that what we want? From power-up, this allows the radio to be started and RTCM to be
+	//       received without needing a AT+TRANS. I think, in our case, it is better if we wait until AT+TRANS
+	//       is received before we start anything - even RX. On Facet FP, we want to prevent corrections being
+	//       pushed from LoRa to the GNSS if LoRa is disabled in RTK Everywhere.
+	//       pull_rtcm_to_uart_handler has been modified and comments added.
+	xret = xTaskCreate(pull_rtcm_to_uart_handler, "pull_rtcm", (1024 * 1), NULL, DRV_UHF_RX_RTCM_TASK_PRI,
 					   NULL);
 	if (xret != pdPASS)
 	{
@@ -1380,7 +1397,7 @@ uint32_t radio_init(void)
 
 	// Now read the settings from flash into s_radio_attr_flash
 	//APP_LOG(TS_ON,VLEVEL_M,"attr size=%d \r\n",sizeof(s_radio_attr_flash));
-	STMFLASH_Read(STM32_FLASH_APPCFG_BASE,(u64*)&s_radio_attr_flash,sizeof(s_radio_attr_flash)/8);
+	STMFLASH_Read(STM32_FLASH_APPCFG_BASE, (u64*)&s_radio_attr_flash, sizeof(s_radio_attr_flash)/8);
 
 	APP_LOG(TS_ON,VLEVEL_M,"flash magic:0x%x \r\n",s_radio_attr_flash.magic);
 	APP_LOG(TS_ON,VLEVEL_M,"flash version:%d \r\n",s_radio_attr_flash.version);
@@ -1400,32 +1417,44 @@ uint32_t radio_init(void)
 	{
 		// s_radio_attr_flash is valid. Copy the non-volatile fields into s_radio_attr
 		// Note: inited is _not_ copied... To ensure radio is inited each time
+		// Note: mode is _not_ copied... Stay in END until the user sends AT+MODE= and AT+TRANS
 		s_radio_attr.enable_save = 	s_radio_attr_flash.enable_save;
-		s_radio_attr.mode =         s_radio_attr_flash.mode;
-		s_radio_attr.freq[0] =      s_radio_attr_flash.freq[0];
-		s_radio_attr.freq[1] =      s_radio_attr_flash.freq[1];
+
 		s_radio_attr.bandwidth[0] =  s_radio_attr_flash.bandwidth[0];
 		s_radio_attr.bandwidth[1] =  s_radio_attr_flash.bandwidth[1];
-		s_radio_attr.bps =          s_radio_attr_flash.bps;
+
 		s_radio_attr.prot[0] =      s_radio_attr_flash.prot[0];
 		s_radio_attr.prot[1] =      s_radio_attr_flash.prot[1];
+
+		s_radio_attr.freq[0] =      s_radio_attr_flash.freq[0];
+		s_radio_attr.freq[1] =      s_radio_attr_flash.freq[1];
+
+		s_radio_attr.type =			s_radio_attr_flash.type;
+		//s_radio_attr.mode =         s_radio_attr_flash.mode;
+		s_radio_attr.bps =          s_radio_attr_flash.bps;
+
 		s_radio_attr.power_level =  s_radio_attr_flash.power_level;
+
 		s_radio_attr.dprt =         s_radio_attr_flash.dprt;
 		s_radio_attr.flash_writes = s_radio_attr_flash.flash_writes;
+
 		APP_LOG(TS_ON,VLEVEL_M,"mode=%d bps = %d, freq =%d PROT=%d DPRT=%d\r\n",s_radio_attr_flash.mode,s_radio_attr_flash.bps,
 				s_radio_attr_flash.freq[0],s_radio_attr_flash.prot[0],s_radio_attr_flash.dprt);
 	}
 
 #if (E77_BOARD ==1)
+	// Should this be in the defaults above? TODO
 	s_radio_attr.power_level = 20; // 20dbm for E77
 #endif
-	s_radio_attr.mode = RADIO_MODE_END;
-	s_radio_attr.stop_rtcm = 0x01;
 
-	if(s_radio_attr.mode != RADIO_MODE_END)
-	{
-		; //init_app_cfg_to_radio();
-	}
+	// s_radio_attr.mode = RADIO_MODE_END; // Redundant?
+	// s_radio_attr.stop_rtcm = 0x01; // Redundant?
+
+	// if(s_radio_attr.mode != RADIO_MODE_END) // Redundant?
+	// {
+	// 	; //init_app_cfg_to_radio(); // Nope. Not here. Wait until user sends AT+TRANS
+	// }
+	
 	APP_LOG(TS_ON,VLEVEL_M,"RADIO V%s INIT OK ---Free heap memory: %d bytes-----\r\n",VERSION,xPortGetFreeHeapSize());
 	return 0;
 }

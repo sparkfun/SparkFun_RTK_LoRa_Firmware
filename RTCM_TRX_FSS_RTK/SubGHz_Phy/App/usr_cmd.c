@@ -62,11 +62,9 @@ uint32_t user_cmd_enter_trans(uint32_t com, uint8_t *cmd)
 	ret = strlen(data);
 
 	// This will save RADIO_ATTR to flash if it has changed and enable_save is true
-	radio_param_cfg();
+	radio_param_cfg(); // This will set s_radio_attr.inited to 0x01
 
 	start_rtcm_trans();
-
-	// This can take ~400ms to complete
 
 	APP_LOG(TS_ON,VLEVEL_M,"enter trans\r\n");
 	return ret;

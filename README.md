@@ -1,6 +1,6 @@
 # SparkFun RTK LoRa Firmware
 
-**The file you need is [RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_3.0.0.hex](./RTCM_TRX_FSS_RTK/RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_3.0.0.hex)**
+**The file you need is [RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_3.0.1.hex](./RTCM_TRX_FSS_RTK/RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_3.0.1.hex)**
 
 ### Starting point:
 
@@ -35,19 +35,36 @@ Replace ```PORT_NUM``` with ```radio_param->dprt```
 * On Torch: dprt defaults to ```COM_PORT_IDX``` (1 = UART2) for combined command and data on a single port
 * On Facet FP: ```AT+DPRT=0``` selects UART1 as the data port
 
-Changed the version to ```VERSION "3.0.0"```
+In RADIO_ATTR (stored in flash): add the version to trigger re-initialization when the version changes.
+This ensures that when you add a new entry in RADIO_ATTR, it gets initialized properly.
+
+Fix ```STMFLASH_Write``` so it correctly erases the sector before writing the radio attributes.
+
+Added the ```AT+SAVE``` command. ```enable_save``` defaults to disabled, avoiding unneeded flash writes.
+Send ```AT+SAVE=1``` to enable saving to flash each time ```AT+TRANS``` starts the transfer.
+
+Fixed ```s_radio_attr.inited``` . This was being set too early.
+
+Don't call ```init_app_cfg_to_radio()``` from ```pull_rtcm_to_uart_handler```. Let ```user_cmd_enter_trans```
+configure the radio. Previously the LoRa firmware would go into RX mode automatically after 400ms. But, on
+SparkFun products, RX should only start if LoRa is enabled. On Facet FP, this prevents LoRa corrections
+being pushed direct to the GNSS automatically / covertly. We could add a ```auto_rx_after_ms``` setting to
+restore the original behaviour and automatically start RX after a defined interval if ```AT+TRANS``` has not
+been received. TODO.
+
+Changed the version to ```VERSION "3.0.1"```
 
 Using STM32CubeIDE Version: 2.1.0
 
 In the project properties \ C/C++ Build \ Settings \ MCU/MPU Post build outputs:
 * Select "Convert to binary file" and "Convert to Intel Hex file"
-* The Intel Hex file is useful as it contains the 0x8000000 start address for the CubeProgrammer
+* The Intel Hex file is useful as it contains the 0x08000000 start address for the CubeProgrammer
 
 Building RTCM_TRX_FSS_RTK\STM32CubeIDE\.project produces:
 * ```LoRa-lora_hop\LoRa-lora_hop\RTCM_TRX_FSS_RTK\STM32CubeIDE\Debug\RTCM_TRX.bin``` / ```.elf``` / ```.hex``` / ```.list``` / ```.map```
 
 These have been copied to:
-* [RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_3.0.0.hex](./RTCM_TRX_FSS_RTK/RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_3.0.0.hex) etc.
+* [RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_3.0.1.hex](./RTCM_TRX_FSS_RTK/RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_3.0.1.hex) etc.
 
 Set RTK unit to LoRa direct connect (s h 17) to connect STM32WL55 UART to USB through the ESP32
 * On Torch: the STM32WL55 is programmed via UART1
@@ -55,12 +72,14 @@ Set RTK unit to LoRa direct connect (s h 17) to connect STM32WL55 UART to USB th
 
 Use STM32CubeProgrammer v2.22.0 to program the .hex onto the STM32WL55
 
+If you want to see the saved radio attributes, read (at least) 64 bytes from address **0x0803e800**
+
 Set the Base RTK unit to Base (Survey-In) and enable LoRa (TX) at 910MHz
 
 ```
 Menu: Radios
 1) ESP-NOW Radio: Disabled
-10) LoRa Radio: Enabled - Firmware v3.0.0
+10) LoRa Radio: Enabled - Firmware v3.0.1
 11) LoRa Coordination Frequency: 910.000
 12) LoRa Transmit Power: 0dBm
 ```

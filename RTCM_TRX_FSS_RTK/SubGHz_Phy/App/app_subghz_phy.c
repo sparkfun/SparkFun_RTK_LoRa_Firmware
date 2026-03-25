@@ -20,9 +20,9 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "app_subghz_phy.h"
-#include "subghz_phy_app.h"
-#include "sys_app.h"
-#include "cmsis_os.h"
+// #include "subghz_phy_app.h"
+// #include "sys_app.h"
+// #include "cmsis_os.h"
 
 /* USER CODE BEGIN Includes */
 

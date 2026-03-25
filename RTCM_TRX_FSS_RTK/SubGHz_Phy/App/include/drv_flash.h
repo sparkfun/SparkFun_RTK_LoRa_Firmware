@@ -7,8 +7,13 @@
 
 #ifndef APP_DRV_FLASH_H_
 #define APP_DRV_FLASH_H_
+
 #include "platform.h"
 #include "hc_type.h"
+
+//#include "sys_app.h"
+//#include "app_common.h"
+
 #define STM_SECTOR_SIZE	2048
 #define STM32_FLASH_SIZE 256
 #define STM32_FLASH_BASE 0x08000000

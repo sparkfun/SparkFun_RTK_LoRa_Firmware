@@ -1,6 +1,35 @@
 #ifndef __DRV_RADIO_H
 #define __DRV_RADIO_H
 
+//#include "main.h"
+// #include "cmsis_os.h"
+// #include "queue.h"
+// #include "event_groups.h"
+
+// #include "platform.h"
+// #include "sys_app.h"
+#include "subghz_phy_app.h"
+#include "stm32wlxx_nucleo_radio.h"
+
+/* USER CODE BEGIN Includes */
+
+#include "stm32_timer.h"
+// #include "utilities_def.h"
+// #include "app_version.h"
+// #include "subghz_phy_version.h"
+#include "app_common.h"
+// #include "radio.h"
+// #include "sys_app.h"
+#include "radio_driver.h"
+
+// #include "drv_uart.h"
+// #include "ring_buffer.h"
+// #include "usr_cmd.h"
+// #include <string.h>
+// #include <stdlib.h>
+// #include "drv_flash.h"
+#include "rtcm_crc.h"
+
 typedef enum
 {
 	RADIO_MODE_TX = 0x00,
@@ -51,29 +80,41 @@ typedef enum
 	RADIO_BAND_END,
 } RADIO_BAND_ENUM;
 
-typedef struct __radio_comm_cfg
+typedef struct _RADIO_ATTR
 {
 	uint32_t magic;
-	uint32_t payload_len;// from  type to fhss
-	uint32_t crc32;
+	uint32_t version;
+	uint32_t payload_len; // Not used... Perhaps included for flash reads / writes?
+	uint32_t crc32; // Not used... Perhaps included for flash reads / writes?
+
 	volatile int stop_rtcm;
 	volatile int inited;
 	volatile int switching;
+	volatile int enable_save;
+
+	uint32_t stepper[2]; // Not used
+	uint32_t bandwidth[2];
+
+	uint32_t prot[2]; // Never changed
+	uint32_t res[2]; // Not used
+
+	uint32_t freq[2];
+	uint32_t wlbaud[2]; // air bps. Not used
+
 	uint32_t type; // 0: lora 1: uhf
 	uint32_t mode; // RADIO_MODE_TX RADIO_MODE_RX
-	uint32_t stepper[2];
-	uint32_t bandwith[2];
 	uint32_t bps;
-	uint32_t prot[2];
-	uint32_t advanced;
-	uint32_t res[2];
-	uint32_t freq[2];
-	uint32_t wlbaud[2]; // air bps
-	uint32_t combaud;	// com bps
+	uint32_t advanced; // Not used
+
+	uint32_t combaud;	// com bps. Not used
 	uint32_t power_level;
-	uint32_t crc_num;
-	uint32_t fhss;
+	uint32_t crc_num; // Not used
+	uint32_t fhss; // Frequency Hopping Spread Spectrum?
+	
 	uint32_t dprt; // 0:UART1 1:UART2
+	uint32_t padding; // Available
+	uint32_t flash_writes;
+	uint32_t tail; // Last, for easy identification in CubeProgrammer
 } RADIO_ATTR;
 
 typedef struct __system_param

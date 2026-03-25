@@ -1,18 +1,20 @@
 #ifndef __APP_COMMON_H
 #define __APP_COMMON_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include "main.h"
+
+//#include "main.h"
 #include "cmsis_os.h"
 #include "queue.h"
 #include "sys_app.h"
-#include "utilities_def.h"
-#include "utilities_conf.h"
+// #include "utilities_def.h"
+// #include "utilities_conf.h"
 
-#define VERSION "3.0.0"
+#define VERSION "3.0.1"
 
 #define MIN(i, j) (((i) < (j)) ? (i) : (j))
 #define MAX(i, j) (((i) > (j)) ? (i) : (j))

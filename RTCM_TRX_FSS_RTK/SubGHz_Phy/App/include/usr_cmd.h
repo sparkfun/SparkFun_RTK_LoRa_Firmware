@@ -4,6 +4,18 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+// #include <stdio.h>
+// #include "main.h"
+// #include "cmsis_os.h"
+// #include "queue.h"
+// #include "event_groups.h"
+
+#include "string.h"
+#include "drv_radio.h"
+// #include "app_common.h"
+// #include "drv_uart.h"
+// #include "sys_app.h"
+
 typedef uint32_t (*USER_CMD_CB)(uint32_t com, uint8_t *cmd);
 
 #define CMD_POWER_H RADIO_POWER_1W
@@ -17,37 +29,10 @@ typedef uint32_t (*USER_CMD_CB)(uint32_t com, uint8_t *cmd);
 #define CMD_HEADER_STR ("AT+")
 #define CMD_HEADER_LEN 3
 
-#define CMD_AT_FRQ_FORMAT "AT+FRQ=%d.%03d %d.%03d\r\n"
-
-#define CMD_AT_PWR_FORMAT "AT+PWR=%d\r\n" // db [0-14]
-
-#define CMD_AT_BAND_FORMAT "AT+BAND=%d %d\r\n" // unit:khz
-
-#define CMD_AT_TYPE_FORMAT "AT+TYPE=%d\r\n" // 0:lora 1:uhf
-
-#define CMD_AT_WORKMODE_FORMAT "AT+MODE=%d\r\n" // 0:RX 1:TX
-
-
-#define CMD_AT_BPS_FORMAT "AT+BPS=%d\r\n" // unit:hundred 19200
-
-#define CMD_AT_PROT_FORMAT "AT+PROT=%s\r\n" // TRANSP  TT450 TRIMARK
-
-#define CMD_AT_DPRT_FORMAT "AT+DPRT=%d\r\n" // Data Port: 0:UART1 (Torch) 1:UART2 (Facet FP)
-
 #define CMD_AT_ASK "?"
 
-#define CMD_STR_ATV ("AT+V")
-#define CMD_STR_AT_FRQ ("AT+FRQ")
-#define CMD_STR_AT_PWR ("AT+PWR")
-#define CMD_STR_AT_BAND ("AT+BAND")
-#define CMD_STR_AT_TYPE ("At+TYPE")
-#define CMD_STR_AT_MODE ("AT+MODE")
-#define CMD_STR_AT_BPS ("AT+BPS") // 19200 38400 62500
-#define CMD_STR_ENTER_TRANS ("AT+TRANS")
-#define CMD_STR_AT_DPRT ("AT+DPRT")
-
 #define CMD_REQ_MAX_LEN 64
-#define CMD_RSP_MAX_LEN 128
+#define CMD_RSP_MAX_LEN 191 // user_cmd_get_radio_attr can return ~154 bytes
 
 #define PROT_LORA  3 // 38400bps 6000hz 12000hz
 
@@ -60,26 +45,29 @@ typedef enum
 
 typedef enum
 {
-	USR_CMD_ID_START = 0,
-	USR_CMD_ID_ATV,
+	USR_CMD_ID_ATV = 1,
 	USR_CMD_ID_AT_FRQ,
-	USR_CMD_ID_AT_PWR,
-	USR_CMD_ID_AT_BAND,
-	USR_CMD_ID_AT_TYPE,
-	USR_CMD_ID_AT_MODE,
-	USR_CMD_ID_AT_T,
-	USR_CMD_ID_AT_BPS,
-	USR_CMD_ID_AT_DPRT,
-	USR_CMD_ID_END
+	USR_CMD_ID_AT_PWR,	// db [0-14]
+	USR_CMD_ID_AT_BAND,	// unit:khz
+	USR_CMD_ID_AT_TYPE,	// 0:lora 1:uhf
+	USR_CMD_ID_AT_MODE,	// 0:RX 1:TX
+	USR_CMD_ID_AT_TRANS,
+	USR_CMD_ID_AT_BPS,	// unit:hundred 19200 // 19200 38400 62500
+	USR_CMD_ID_AT_DPRT,	// Data Port: 0:UART1 (Torch) 1:UART2 (Facet FP)
+	USR_CMD_ID_AT_ATTR,
+	USR_CMD_ID_AT_SAVE,
+	// Add new commands above this line
 } USR_CMD_ID;
 
-typedef struct
+typedef struct _USR_CMD_LIST
 {
-	uint8_t msgid;
-	uint8_t cmd_str[8];
+	const uint8_t msgid;
+	const char *cmd_str;
 	USER_CMD_CB user_cmd_set_cb;
 	USER_CMD_CB user_cmd_get_cb;
 } USR_CMD_LIST;
+
+// TODO: CMD_AT_PROT_FORMAT "AT+PROT=%s\r\n" // TRANSP  TT450 TRIMARK
 
 #define SEARCH (0)
 #define SYNC (1)
@@ -126,6 +114,9 @@ uint32_t user_cmd_set_bps(uint32_t com, uint8_t *cmd);
 uint32_t user_cmd_get_bps(uint32_t com, uint8_t *cmd);
 
 uint32_t user_cmd_set_dprt(uint32_t com, uint8_t *cmd);
+
+uint32_t user_cmd_get_radio_attr(uint32_t com, uint8_t *cmd);
+uint32_t user_cmd_set_radio_attr_save(uint32_t com, uint8_t *cmd);
 
 uint32_t send_cmd_rsp(const uint8_t *data, const uint16_t len);
 

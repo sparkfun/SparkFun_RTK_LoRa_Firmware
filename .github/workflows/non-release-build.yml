@@ -1,0 +1,46 @@
+name: Non-Release Build
+on:
+  workflow_dispatch:
+    branches:
+
+jobs:
+  build:
+
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Extract branch name
+        run: echo "BRANCH=${{github.ref_name}}" >> $GITHUB_ENV
+
+      - name: Run Dockerfile and copy files
+        # The --quiet suppresses the build output, keeping the secrets safe
+        run: |
+          echo "*** The docker build is quiet to protect the GitHub secrets ***"
+          docker build -t rtcm_trx --no-cache --quiet \
+          --build-arg STM32CUBECLT_DIR=stm32cubeclt \
+          --build-arg STM32CUBECLT_ZIP=st-stm32cubeclt_1.21.0_27995_20260219_1804_amd64.deb_bundle.sh.zip.gpg \
+          --build-arg STM32CUBECLT_VERSION=1.21.0 \
+          --build-arg PASSPHRASE="${{ secrets.DECRYPT_STM32CUBECLT }}" \
+          .
+          docker create --name=rtcm_trx_lora rtcm_trx:latest
+          docker cp rtcm_trx_lora:/RTCM_TRX.zip .
+          docker container rm rtcm_trx_lora
+
+      - name: Create artifact directory, unzip files
+        run: |
+          mkdir RTCM_TRX
+          mv RTCM_TRX.zip RTCM_TRX
+          cd RTCM_TRX
+          unzip RTCM_TRX.zip
+          rm RTCM_TRX.zip
+
+      - name: Upload artifact directory to action - avoid double-zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: RTCM_TRX
+          path: RTCM_TRX
+          retention-days: 7

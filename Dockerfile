@@ -69,8 +69,14 @@ RUN chmod +x /tmp/stm32cubeclt-installer.sh \
 # Copy RTCM_TRX_FSS_RTK and build deployment image
 FROM upstream AS deployment
 
+# mkdir to hold the files
+RUN cd /home \
+    && mkdir paul \
+    && cd paul \
+    && mkdir Documents
+
 # Add the source files
-ADD . .
+ADD . /home/paul/Documents
 
 ENV PATH=/opt/st/stm32cubeclt_$STM32CUBECLT_VERSION/STM32CubeProgrammer/bin:${PATH}
 ENV PATH=/opt/st/stm32cubeclt_$STM32CUBECLT_VERSION/GNU-tools-for-STM32/bin:${PATH}
@@ -79,12 +85,13 @@ ENV LD_LIBRARY_PATH=/opt/st/stm32cubeclt_$STM32CUBECLT_VERSION/STLink-gdb-server
 
 # Run CubeCLT
 RUN ["dash", "-c", "\
-cd ./RTCM_TRX_FSS_RTK/STM32CubeIDE/Debug \
+cd /home/paul/Documents/RTCM_TRX_FSS_RTK/STM32CubeIDE/Debug \
 && make -j8 all \
 "]
 
 # Rename files and zip
-RUN VERSION=$(grep "#define VERSION " ./RTCM_TRX_FSS_RTK/SubGHz_Phy/App/include/app_common.h | cut -c 18-22) \
+RUN cd /home/paul/Documents \
+    && VERSION=$(grep "#define VERSION " ./RTCM_TRX_FSS_RTK/SubGHz_Phy/App/include/app_common.h | cut -c 18-22) \
     && cp ./RTCM_TRX_FSS_RTK/STM32CubeIDE/Debug/RTCM_TRX.elf ./RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_$VERSION.elf \
     && cp ./RTCM_TRX_FSS_RTK/STM32CubeIDE/Debug/RTCM_TRX.hex ./RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_$VERSION.hex \
     && rm -f ./RTCM_TRX.zip \
@@ -96,7 +103,7 @@ RUN VERSION=$(grep "#define VERSION " ./RTCM_TRX_FSS_RTK/SubGHz_Phy/App/include/
 # Copy the zipped compile output. List the files
 FROM deployment AS output
 
-COPY --from=deployment ./RTCM_TRX.zip /
+COPY --from=deployment /home/paul/Documents/RTCM_TRX.zip /
 
 CMD echo $(ls /*.*)
 

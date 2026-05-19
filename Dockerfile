@@ -22,7 +22,7 @@ ENV PATH="${PATH}:/opt/st/stm32cubeclt_${STM32CUBECLT_VERSION}"
 ENV DISPLAY=:0
 
 # Copy the encrypted stm32cubeclt zip file
-COPY $STM32CUBECLT_DIR/$STM32CUBECLT_ZIP /tmp/stm32cubeclt-installer.sh.zip.gpg
+#COPY $STM32CUBECLT_DIR/$STM32CUBECLT_ZIP /tmp/stm32cubeclt-installer.sh.zip.gpg
 
 # Establish Development Environment
 RUN apt-get update \
@@ -51,6 +51,11 @@ RUN apt-get update \
         gpg \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# Get the encrypted stm32cubeclt zip file from GitHub LFS
+RUN cd /tmp \
+    && curl https://github.com/sparkfun/Facet_FP_LoRa_Firmware/raw/refs/heads/main/$STM32CUBECLT_DIR/$STM32CUBECLT_ZIP \
+    && mv $STM32CUBECLT_ZIP stm32cubeclt-installer.sh.zip.gpg
 
 # Decrypt the gpg file and delete it
 RUN gpg --batch --yes --decrypt --passphrase $PASSPHRASE -o /tmp/stm32cubeclt-installer.sh.zip /tmp/stm32cubeclt-installer.sh.zip.gpg \

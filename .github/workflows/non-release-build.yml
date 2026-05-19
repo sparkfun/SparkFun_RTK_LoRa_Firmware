@@ -24,7 +24,7 @@ jobs:
           --build-arg STM32CUBECLT_DIR=stm32cubeclt \
           --build-arg STM32CUBECLT_ZIP=st-stm32cubeclt_1.21.0_27995_20260219_1804_amd64.deb_bundle.sh.zip.gpg \
           --build-arg STM32CUBECLT_VERSION=1.21.0 \
-          --build-arg PASSPHRASE=${{ secrets.DECRYPT_STM32CUBECLT }} \
+          --build-arg PASSPHRASE=${{secrets.DECRYPT_STM32CUBECLT}} \
           .
           docker create --name=rtcm_trx_lora rtcm_trx:latest
           docker cp rtcm_trx_lora:/RTCM_TRX.zip .

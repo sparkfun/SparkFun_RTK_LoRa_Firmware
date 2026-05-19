@@ -47,6 +47,7 @@ RUN apt-get update \
         udev \
         nano \
         ssh \
+        ca-certificates \
         gpg \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*

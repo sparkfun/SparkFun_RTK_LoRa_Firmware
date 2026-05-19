@@ -20,7 +20,7 @@ jobs:
         # The --quiet suppresses the build output, keeping the secrets safe
         run: |
           echo "*** The docker build is quiet to protect the GitHub secrets ***"
-          docker build -t rtcm_trx --no-cache --quiet \
+          docker build -t rtcm_trx --no-cache \
           --build-arg STM32CUBECLT_DIR=stm32cubeclt \
           --build-arg STM32CUBECLT_ZIP=st-stm32cubeclt_1.21.0_27995_20260219_1804_amd64.deb_bundle.sh.zip.gpg \
           --build-arg STM32CUBECLT_VERSION=1.21.0 \

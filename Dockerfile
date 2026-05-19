@@ -53,7 +53,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Decrypt the gpg file and delete it
-RUN gpg --quiet --batch --yes --decrypt --passphrase $PASSPHRASE -o /tmp/stm32cubeclt-installer.sh.zip /tmp/stm32cubeclt-installer.sh.zip.gpg \
+RUN gpg --batch --yes --decrypt --passphrase $PASSPHRASE -o /tmp/stm32cubeclt-installer.sh.zip /tmp/stm32cubeclt-installer.sh.zip.gpg \
     && rm /tmp/stm32cubeclt-installer.sh.zip.gpg
 
 # Unzip STM32 Cube CLT and delete zip file

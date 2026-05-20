@@ -10,9 +10,9 @@ You will find the latest firmware binary attached to the latest [release](https:
 
 ## Updating the Facet FP LoRa Firmware
 
-The procedure for updating the Facet FP LoRa Firmware is still work-in-progress. But - for now - it is almost identical to Torch (described [below](#updating-the-torch-lora-firmware)): put the firmware into "STM32 direct connect" mode using menu options ```s``` , ```h``` , ```17```; then use STM32CubeProgrammer to upload the binary.
+The procedure for updating the Facet FP LoRa Firmware is still work-in-progress. But - for now - it is almost identical to Torch (described [below](#updating-the-torch-lora-firmware)): put the firmware into ```STM32 direct connect``` mode using menu options ```s``` , ```h``` , ```17```; then use STM32CubeProgrammer to upload the binary.
 
-The **.elf** firmware binary is easier to use than the raw **.bin** binary since is contains the program memory locations within the file. With the **.bin** binary, you need to manually set the _Start address_ to _0x8000000_.
+The **.elf** or **.hex** firmware binary is easier to use than the raw **.bin** binary since they contain the program memory locations within the file. With the **.bin** binary, you need to manually set the **Start address** to **0x08000000**
 
 ## Updating the Torch LoRa Firmware
 
@@ -35,7 +35,7 @@ SparkFun have tweaked it a little to:
 
 ### How SparkFun does it
 
-We use GitHub Actions (Workflows) to compile the firmware binary. We use Docker and a [Dockerfile](./Dockerfile) to build the firmware using ST's STM32CubeCLT command-line toolset for Linux on a virtual ubuntu machine. Because STM32CubeCLT is licenced software, we pull in our own encrypted copy from [this repo](https://github.com/sparkfun/SparkFun_STM32CubeCLT).
+We use [GitHub Actions (Workflows)](https://github.com/sparkfun/SparkFun_RTK_LoRa_Firmware/tree/main/.github/workflows) to compile the firmware binary. We use Docker and a [Dockerfile](./Dockerfile) to build the firmware using ST's STM32CubeCLT command-line toolset for Linux on a virtual ubuntu machine. Because STM32CubeCLT is licenced software, we pull in our own encrypted copy from [this repo](https://github.com/sparkfun/SparkFun_STM32CubeCLT).
 
 ### Compiling Locally
 
@@ -45,7 +45,7 @@ The IDE is easier to use, and there are installers for Windows, macOS and Linux.
 
 The compiled ```RTCM_TRX.bin \ .elf \ .hex``` firmware files can be found in ```RTCM_TRX_FSS_RTK\STM32CubeIDE\Debug```
 
-If you are looking for the firmware ```VERSON```, you will find it in [RTCM_TRX_FSS_RTK/SubGHz_Phy/App/include/app_common.h](./RTCM_TRX_FSS_RTK/SubGHz_Phy/App/include/app_common.h).
+If you are looking for the firmware ```VERSION```, you will find it in [RTCM_TRX_FSS_RTK/SubGHz_Phy/App/include/app_common.h](./RTCM_TRX_FSS_RTK/SubGHz_Phy/App/include/app_common.h)
 
 We have built the code successfully using: STM32CubeIDE version 2.1.0 ; and STM32CubeCLT version 1.21.0
 

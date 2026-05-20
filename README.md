@@ -1,113 +1,58 @@
 # SparkFun RTK LoRa Firmware
 
-**The file you need is [RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_3.0.1.hex](./RTCM_TRX_FSS_RTK/RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_3.0.1.hex)**
+This repo contains the source code and compiled firmware binaries for the STM32WL55 LoRa chipset used in the [SparkPNT Facet FP](https://www.sparkfun.com/sparkpnt-facet-fp) product range
 
-### Starting point:
+The same firmware can also be run on the original [SparkFun RTK Torch](https://www.sparkfun.com/sparkfun-rtk-torch.html)
 
-_**LoRa-lora_hop.zip**_
+Provided both Facet FP and Torch are running the same LoRa firmware, they can act as a LoRa-connected Base-Rover pair
 
-A zip of a private repo, dated February 12th 2026
+You will find the latest firmware binary attached to the latest [release](https://github.com/sparkfun/Facet_FP_LoRa_Firmware/releases)
 
-Contains a compiled binary named [RTCM_TRX_LORA_HOP_V005.bin](./RTCM_TRX_FSS_RTK/RTCM_TRX_LORA_HOP_V005.bin) but the VERSION in app_common.h is actually "0.0.6"
+## Updating the Facet FP LoRa Firmware
 
-### Modifications:
+The procedure for updating the Facet FP LoRa Firmware is still work-in-progress. But - for now - it is almost identical to Torch (described [below](#updating-the-torch-lora-firmware)): put the firmware into "STM32 direct connect" mode using menu options ```s``` , ```h``` , ```17```; then use STM32CubeProgrammer to upload the binary.
 
-In ```RTCM_TRX_FSS_RTK\STM32CubeIDE\.project```
-* Replaced ```<location>D:/lora_fss/RTCM_TRX_FIX1/SubGHz_Phy/App/drv_flash.c</location>```
-* with ```<locationURI>PARENT-1-PROJECT_LOC/SubGHz_Phy/App/drv_flash.c</locationURI>```
-* Replaced ```<location>D:/lora_fss/RTCM_TRX_FIX1/SubGHz_Phy/App/rtcm_crc.c</location>```
-* with ```<locationURI>PARENT-1-PROJECT_LOC/SubGHz_Phy/App/rtcm_crc.c</locationURI>```
+The **.elf** firmware binary is easier to use than the raw **.bin** binary since is contains the program memory locations within the file. With the **.bin** binary, you need to manually set the _Start address_ to _0x8000000_.
 
-Added ```.gitignore```
+## Updating the Torch LoRa Firmware
 
-Corrected an error in ```drv_radio.c```: replaced ```rx_ptr += i;``` with ```uint8_t *rx_ptr = &msg.buf[i];```
+The procedure for updating the Torch LoRa Firmware is described [here](https://docs.sparkfun.com/SparkFun_RTK_Everywhere_Firmware/firmware_update_stm32/)
 
-Disable the LOG traffic by:
-* Change ```#define APP_LOG_ENABLED``` to 0
-* Commenting the ```#define MW_LOG_ENABLED```
-* Add ```#define APP_PRINTF(...)``` in ```sys_app.h```
+## Thanks!
 
-In ```usart_if.c```: add better support in ```vcom_Init``` etc. for ```DBG_PORT == 0 / 1```
-* Remember to ```#include "sys_conf.h"``` where needed (```usart_if.c```)
-* Comment ```DBG_PORT``` to disable vcom / trace driver and avoid UART conflict
+The LoRa firmware was developed for us by Jay Bu and colleagues at Limosa. Thank you Jay.
 
-Replace ```PORT_NUM``` with ```radio_param->dprt```
-* On Torch: dprt defaults to ```COM_PORT_IDX``` (1 = UART2) for combined command and data on a single port
-* On Facet FP: ```AT+DPRT=0``` selects UART1 as the data port
+SparkFun have tweaked it a little to:
 
-In RADIO_ATTR (stored in flash): add the version to trigger re-initialization when the version changes.
-This ensures that when you add a new entry in RADIO_ATTR, it gets initialized properly.
+* Allow both UART1 and UART2 to be used as the data port
+    * On Torch: UART2 acts as a combined control and data port
+    * On Facet FP: the firmware sends ```AT+DPRT=0``` to select UART1 as the data port (which is connected directly to the GNSS)
+* Disable the LOG output, since both UARTs are needed on Facet FP for control and data
+* ```STMFLASH_Write``` correctly erases the sector before writing the radio attributes
+* Added the ```AT+SAVE``` command to avoid unneeded flash writes
 
-Fix ```STMFLASH_Write``` so it correctly erases the sector before writing the radio attributes.
+## Compiling the Firmware
 
-Added the ```AT+SAVE``` command. ```enable_save``` defaults to disabled, avoiding unneeded flash writes.
-Send ```AT+SAVE=1``` to enable saving to flash each time ```AT+TRANS``` starts the transfer.
+### How SparkFun does it
 
-Fixed ```s_radio_attr.inited``` . This was being set too early.
+We use GitHub Actions (Workflows) to compile the firmware binary. We use Docker and a [Dockerfile](./Dockerfile) to build the firmware using ST's STM32CubeCLT command-line toolset for Linux on a virtual ubuntu machine. Because STM32CubeCLT is licenced software, we pull in our own encrypted copy from [this repo](https://github.com/sparkfun/SparkFun_STM32CubeCLT).
 
-Don't call ```init_app_cfg_to_radio()``` from ```pull_rtcm_to_uart_handler```. Let ```user_cmd_enter_trans```
-configure the radio. Previously the LoRa firmware would go into RX mode automatically after 400ms. But, on
-SparkFun products, RX should only start if LoRa is enabled. On Facet FP, this prevents LoRa corrections
-being pushed direct to the GNSS automatically / covertly. We could add a ```auto_rx_after_ms``` setting to
-restore the original behaviour and automatically start RX after a defined interval if ```AT+TRANS``` has not
-been received. TODO.
+### Compiling Locally
 
-Changed the version to ```VERSION "3.0.1"```
+If you want to compile the LoRa firmware locally, you absolutely can but you will need to download and install either ST's [STM32CubeIDE](https://www.st.com/en/development-tools/stm32cubeide.html) development environment or the [STM32CubeCLT](https://www.st.com/en/development-tools/stm32cubeclt.html).
 
-Using STM32CubeIDE Version: 2.1.0
+The IDE is easier to use, and there are installers for Windows, macOS and Linux. Download or copy the LoRa source code from this repo, use the ```STM32 Project Create / Import``` option (under ```File```) to import the ```RTCM_TRX``` project (in STM32CubeIDE), then select ```Build Project```. It really is as easy as that.
 
-In the project properties \ C/C++ Build \ Settings \ MCU/MPU Post build outputs:
-* Select "Convert to binary file" and "Convert to Intel Hex file"
-* The Intel Hex file is useful as it contains the 0x08000000 start address for the CubeProgrammer
+The compiled ```RTCM_TRX.bin \ .elf \ .hex``` firmware files can be found in ```RTCM_TRX_FSS_RTK\STM32CubeIDE\Debug```
 
-Building RTCM_TRX_FSS_RTK\STM32CubeIDE\.project produces:
-* ```LoRa-lora_hop\LoRa-lora_hop\RTCM_TRX_FSS_RTK\STM32CubeIDE\Debug\RTCM_TRX.bin``` / ```.elf``` / ```.hex``` / ```.list``` / ```.map```
+If you are looking for the firmware ```VERSON```, you will find it in [RTCM_TRX_FSS_RTK/SubGHz_Phy/App/include/app_common.h](./RTCM_TRX_FSS_RTK/SubGHz_Phy/App/include/app_common.h).
 
-These have been copied to:
-* [RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_3.0.1.hex](./RTCM_TRX_FSS_RTK/RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_3.0.1.hex) etc.
+We have built the code successfully using: STM32CubeIDE version 2.1.0 ; and STM32CubeCLT version 1.21.0
 
-Set RTK unit to LoRa direct connect (s h 17) to connect STM32WL55 UART to USB through the ESP32
-* On Torch: the STM32WL55 is programmed via UART1
-* On Facet FP: the STM32WL55 is programmed via UART2
+If you want to see the saved radio attributes in flash memory, use STM32CubeProgrammer to read (at least) 64 bytes from address **0x0803e800**
 
-Use STM32CubeProgrammer v2.22.0 to program the .hex onto the STM32WL55
+## Licence
 
-If you want to see the saved radio attributes, read (at least) 64 bytes from address **0x0803e800**
+Please see [LICENSE.md](./LICENSE.md) for details.
 
-Set the Base RTK unit to Base (Survey-In) and enable LoRa (TX) at 910MHz
-
-```
-Menu: Radios
-1) ESP-NOW Radio: Disabled
-10) LoRa Radio: Enabled - Firmware v3.0.1
-11) LoRa Coordination Frequency: 910.000
-12) LoRa Transmit Power: 0dBm
-```
-
-```
-Base Mode - SIV: 39
-LoRa transmitted 3120 RTCM bytes
-Base Mode - SIV: 39
-LoRa transmitted 3194 RTCM bytes
-Base Mode - SIV: 39
-Base Mode - SIV: 39
-LoRa transmitted 3120 RTCM bytes
-Base Mode - SIV: 39
-LoRa transmitted 3120 RTCM bytes
-Base Mode - SIV: 39
-Base Mode - SIV: 39
-LoRa transmitted 3194 RTCM bytes
-Base Mode - SIV: 39
-LoRa transmitted 3120 RTCM bytes
-Base Mode - SIV: 39
-Base Mode - SIV: 39
-LoRa transmitted 3120 RTCM bytes
-```
-
-On the Rover RTK unit, enable LoRa Radio at 910MHz
-
-On Facet FP: the firmware sends ```AT+DPRT=0``` to select UART1 as the data port
-
-Setting the LoRa transmit power to 0dBm helps reduce the peak current consumption:
-* On a battery-less Facet FP, this can help prevent power brown-outs during TX
-* Default transmit power is 10dBm
+* Your friends at SparkFun

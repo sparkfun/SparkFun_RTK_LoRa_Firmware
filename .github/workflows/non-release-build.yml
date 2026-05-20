@@ -20,7 +20,7 @@ jobs:
         # The --quiet suppresses the build output, keeping the secrets safe
         run: |
           echo "*** The docker build is quiet to protect the GitHub secrets ***"
-          docker build -t rtcm_trx --progress=plain --no-cache \
+          docker build -t rtcm_trx --no-cache --quiet \
           --build-arg PASSPHRASE=${{secrets.DECRYPT_STM32CUBECLT}} \
           .
           docker create --name=rtcm_trx_lora rtcm_trx:latest

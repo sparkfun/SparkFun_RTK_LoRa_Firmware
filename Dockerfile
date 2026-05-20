@@ -2,24 +2,17 @@ FROM ubuntu:latest AS upstream
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-# STM32CubeCLT is licensed software. The copy included here is passphrase-encrypted
+# STM32CubeCLT is licensed software. SparkFun's copy is passphrase-encrypted
+# https://github.com/sparkfun/SparkFun_STM32CubeCLT
 ARG PASSPHRASE
 
-# Path to the STM32CubeCLT Debian Linux Installer zip file. E.g.:
-# st-stm32cubeclt_1.21.0_27995_20260219_1804_amd64.deb_bundle.sh.zip
-# Download from:
-# https://www.st.com/en/development-tools/stm32cubeclt.html#section-get-software-table
-ARG STM32CUBECLT_DIR=stm32cubeclt
+# Path to the repo containing the encrypted STM32CubeCLT Debian Linux Installer zip file. E.g.:
+# st-stm32cubeclt_1.21.0_27995_20260219_1804_amd64.deb_bundle.sh.zip.gpg
+ARG STM32CUBECLT_REPO_URL=https://github.com/sparkfun/SparkFun_STM32CubeCLT
+ARG STM32CUBECLT_REPO_NAME=SparkFun_STM32CubeCLT
+# TODO: parse these from the zip filename after the git clone
 ARG STM32CUBECLT_ZIP=st-stm32cubeclt_1.21.0_27995_20260219_1804_amd64.deb_bundle.sh.zip.gpg
-
-# STM32CubeCLT version
 ARG STM32CUBECLT_VERSION=1.21.0
-
-# Set environment variables
-ENV LICENSE_ALREADY_ACCEPTED=1
-ENV TZ=Etc/UTC
-ENV PATH="${PATH}:/opt/st/stm32cubeclt_${STM32CUBECLT_VERSION}"
-ENV DISPLAY=:0
 
 # Establish Development Environment
 RUN apt-get update \
@@ -35,6 +28,7 @@ RUN apt-get update \
         python3-pyelftools \
         python3-numpy \
         git \
+        git-lfs \
         zip \
         unzip \
         libglib2.0-0 \
@@ -49,10 +43,21 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Clone the STM32CubeCLT repo - then we can pull the stm32cubeclt zip file from GitHub LFS
+RUN git clone $STM32CUBECLT_REPO_URL.git
+
+# TODO: parse STM32CUBECLT_ZIP and STM32CUBECLT_VERSION from the zip filename after the git clone
+
 # Pull the encrypted stm32cubeclt zip file from GitHub LFS
-RUN cd /tmp \
-    && git lfs pull -I $STM32CUBECLT_DIR/$STM32CUBECLT_ZIP \
-    && mv $STM32CUBECLT_ZIP stm32cubeclt-installer.sh.zip.gpg
+RUN cd $STM32CUBECLT_REPO_NAME \
+    && git lfs pull -I $STM32CUBECLT_ZIP \
+    && mv $STM32CUBECLT_ZIP /tmp/stm32cubeclt-installer.sh.zip.gpg
+
+# Set environment variables
+ENV LICENSE_ALREADY_ACCEPTED=1
+ENV TZ=Etc/UTC
+ENV PATH="${PATH}:/opt/st/stm32cubeclt_${STM32CUBECLT_VERSION}"
+ENV DISPLAY=:0
 
 # Decrypt the gpg file and delete it
 RUN gpg --batch --yes --decrypt --passphrase $PASSPHRASE -o /tmp/stm32cubeclt-installer.sh.zip /tmp/stm32cubeclt-installer.sh.zip.gpg \
@@ -97,6 +102,7 @@ RUN cd /home/paul/Documents \
     && VERSION=$(grep "#define VERSION " ./RTCM_TRX_FSS_RTK/SubGHz_Phy/App/include/app_common.h | cut -c 18-22) \
     && cp ./RTCM_TRX_FSS_RTK/STM32CubeIDE/Debug/RTCM_TRX.elf ./RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_$VERSION.elf \
     && cp ./RTCM_TRX_FSS_RTK/STM32CubeIDE/Debug/RTCM_TRX.hex ./RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_$VERSION.hex \
+    && cp ./RTCM_TRX_FSS_RTK/STM32CubeIDE/Debug/RTCM_TRX.bin ./RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_$VERSION.bin \
     && rm -f ./RTCM_TRX.zip \
     && zip ./RTCM_TRX.zip ./RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_* \
     && rm ./RTCM_TRX_RTK-Facet-FP_LoRa_250kHz-hopping_$VERSION.*

@@ -3,5 +3,4 @@
 *.su
 *.cyclo
 *.mk
-makefile
 objects.list

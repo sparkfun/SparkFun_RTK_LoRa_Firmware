@@ -92,14 +92,17 @@ ENV PATH=/opt/st/stm32cubeclt_$STM32CUBECLT_VERSION/STLink-gdb-server/bin:${PATH
 ENV LD_LIBRARY_PATH=/opt/st/stm32cubeclt_$STM32CUBECLT_VERSION/STLink-gdb-server/bin/native/linux_x64
 
 RUN ["dash", "-c", "\
-ls -al \
-&& ls -al home/paul/Documents \
+pwd \
+&& ls -al \
 && ls -al /home/paul/Documents \
+&& ls -al /home/paul/Documents/RTCM_TRX_FSS_RTK \
+&& ls -al /home/paul/Documents/RTCM_TRX_FSS_RTK/STM32CubeIDE \
+&& ls -al /home/paul/Documents/RTCM_TRX_FSS_RTK/STM32CubeIDE/Debug \
 "]
 
 # Run CubeCLT
 RUN ["dash", "-c", "\
-cd home/paul/Documents/RTCM_TRX_FSS_RTK/STM32CubeIDE/Debug \
+cd /home/paul/Documents/RTCM_TRX_FSS_RTK/STM32CubeIDE/Debug \
 && make -j8 all \
 "]
 

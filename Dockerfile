@@ -77,14 +77,17 @@ RUN chmod +x /tmp/stm32cubeclt-installer.sh \
 # Copy RTCM_TRX_FSS_RTK and build deployment image
 FROM upstream AS deployment
 
-# mkdir to hold the files
+# Add the source files
+ADD . .
+
+# target directory to hold the files
 RUN cd /home \
     && mkdir paul \
     && cd paul \
     && mkdir Documents
 
-# Add the source files
-ADD . /home/paul/Documents
+# Move the source files
+RUN mv /RTCM_TRX_FSS_RTK /home/paul/Documents/
 
 ENV PATH=/opt/st/stm32cubeclt_$STM32CUBECLT_VERSION/STM32CubeProgrammer/bin:${PATH}
 ENV PATH=/opt/st/stm32cubeclt_$STM32CUBECLT_VERSION/GNU-tools-for-STM32/bin:${PATH}

@@ -1,5 +1,9 @@
 name: Build For Release
 on:
+  # Trigger on a published release
+  release:
+    types: [published]
+
   workflow_dispatch:
     branches:
 
@@ -21,30 +25,14 @@ jobs:
         run: |
           echo "*** The docker build is quiet to protect the GitHub secrets ***"
           docker build -t rtcm_trx --no-cache --quiet \
-          --build-arg STM32CUBECLT_DIR=stm32cubeclt \
-          --build-arg STM32CUBECLT_ZIP=st-stm32cubeclt_1.21.0_27995_20260219_1804_amd64.deb_bundle.sh.zip.gpg \
-          --build-arg STM32CUBECLT_VERSION=1.21.0 \
-          --build-arg PASSPHRASE="${{ secrets.DECRYPT_STM32CUBECLT }}" \
+          --build-arg PASSPHRASE="${{secrets.DECRYPT_STM32CUBECLT}}" \
           .
           docker create --name=rtcm_trx_lora rtcm_trx:latest
           docker cp rtcm_trx_lora:/RTCM_TRX.zip .
           docker container rm rtcm_trx_lora
 
-      - name: Create artifact directory, unzip files, replace existing files
-        run: |
-          mkdir RTCM_TRX
-          mv RTCM_TRX.zip RTCM_TRX
-          cd RTCM_TRX
-          unzip RTCM_TRX.zip
-          rm RTCM_TRX.zip
-
-      - name: Commit and push form.h
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add ./Firmware/RTK_Everywhere/form.h
-          git commit -m "Update form.h via Python"
-          git push origin ${{ env.BRANCH }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+      - name: Publish release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            ./RTCM_TRX.zip

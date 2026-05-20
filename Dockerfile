@@ -60,7 +60,7 @@ ENV PATH="${PATH}:/opt/st/stm32cubeclt_${STM32CUBECLT_VERSION}"
 ENV DISPLAY=:0
 
 # Decrypt the gpg file and delete it
-RUN gpg --batch --yes --decrypt --passphrase $PASSPHRASE -o /tmp/stm32cubeclt-installer.sh.zip /tmp/stm32cubeclt-installer.sh.zip.gpg \
+RUN gpg --quiet --batch --yes --decrypt --passphrase $PASSPHRASE -o /tmp/stm32cubeclt-installer.sh.zip /tmp/stm32cubeclt-installer.sh.zip.gpg \
     && rm /tmp/stm32cubeclt-installer.sh.zip.gpg
 
 # Unzip STM32 Cube CLT and delete zip file
@@ -90,15 +90,6 @@ ENV PATH=/opt/st/stm32cubeclt_$STM32CUBECLT_VERSION/STM32CubeProgrammer/bin:${PA
 ENV PATH=/opt/st/stm32cubeclt_$STM32CUBECLT_VERSION/GNU-tools-for-STM32/bin:${PATH}
 ENV PATH=/opt/st/stm32cubeclt_$STM32CUBECLT_VERSION/STLink-gdb-server/bin:${PATH}
 ENV LD_LIBRARY_PATH=/opt/st/stm32cubeclt_$STM32CUBECLT_VERSION/STLink-gdb-server/bin/native/linux_x64
-
-RUN ["dash", "-c", "\
-pwd \
-&& ls -al \
-&& ls -al /home/paul/Documents \
-&& ls -al /home/paul/Documents/RTCM_TRX_FSS_RTK \
-&& ls -al /home/paul/Documents/RTCM_TRX_FSS_RTK/STM32CubeIDE \
-&& ls -al /home/paul/Documents/RTCM_TRX_FSS_RTK/STM32CubeIDE/Debug \
-"]
 
 # Run CubeCLT
 RUN ["dash", "-c", "\

@@ -33,7 +33,7 @@ SparkFun have tweaked it a little to:
 
 ## Compiling the Firmware
 
-### How SparkFun does it
+### How SparkFun Does It
 
 We use [GitHub Actions (Workflows)](https://github.com/sparkfun/SparkFun_RTK_LoRa_Firmware/tree/main/.github/workflows) to compile the firmware binary. We use Docker and a [Dockerfile](./Dockerfile) to build the firmware using ST's STM32CubeCLT command-line toolset for Linux on a virtual ubuntu machine. Because STM32CubeCLT is licenced software, we pull in our own encrypted copy from [this repo](https://github.com/sparkfun/SparkFun_STM32CubeCLT).
 

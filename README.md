@@ -6,7 +6,7 @@ The same firmware can also be run on the original [SparkFun RTK Torch](https://w
 
 Provided both Facet FP and Torch are running the same LoRa firmware, they can act as a LoRa-connected Base-Rover pair
 
-You will find the latest firmware binary attached to the latest [release](https://github.com/sparkfun/Facet_FP_LoRa_Firmware/releases)
+You will find the latest firmware binary attached to the latest [release](https://github.com/sparkfun/SparkFun_RTK_LoRa_Firmware/releases)
 
 ## Updating the Facet FP LoRa Firmware
 

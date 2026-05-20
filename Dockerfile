@@ -77,26 +77,29 @@ RUN chmod +x /tmp/stm32cubeclt-installer.sh \
 # Copy RTCM_TRX_FSS_RTK and build deployment image
 FROM upstream AS deployment
 
-# Add the source files
-ADD . .
-
-# target directory to hold the files
+# mkdir to hold the files
 RUN cd /home \
     && mkdir paul \
     && cd paul \
     && mkdir Documents
 
-# Move the source files
-RUN mv /RTCM_TRX_FSS_RTK /home/paul/Documents/
+# Add the source files
+ADD . /home/paul/Documents
 
 ENV PATH=/opt/st/stm32cubeclt_$STM32CUBECLT_VERSION/STM32CubeProgrammer/bin:${PATH}
 ENV PATH=/opt/st/stm32cubeclt_$STM32CUBECLT_VERSION/GNU-tools-for-STM32/bin:${PATH}
 ENV PATH=/opt/st/stm32cubeclt_$STM32CUBECLT_VERSION/STLink-gdb-server/bin:${PATH}
 ENV LD_LIBRARY_PATH=/opt/st/stm32cubeclt_$STM32CUBECLT_VERSION/STLink-gdb-server/bin/native/linux_x64
 
+RUN ["dash", "-c", "\
+ls -al \
+&& ls -al home/paul/Documents \
+&& ls -al /home/paul/Documents \
+"]
+
 # Run CubeCLT
 RUN ["dash", "-c", "\
-cd /home/paul/Documents/RTCM_TRX_FSS_RTK/STM32CubeIDE/Debug \
+cd home/paul/Documents/RTCM_TRX_FSS_RTK/STM32CubeIDE/Debug \
 && make -j8 all \
 "]
 

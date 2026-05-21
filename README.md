@@ -51,6 +51,10 @@ If you want to see the saved radio attributes in flash memory, use STM32CubeProg
 
 ## Licence
 
-Please see [LICENSE.md](./LICENSE.md) for details.
+The parts of this firmware which SparkFun wrote are covered by the MIT licence. Please see [LICENSE.md](./LICENSE.md) for details.
+
+Other parts of this firmware have different licences, depending on the licence selected by the original author. Some parts are covered by the MIT licence, some by the BSD-3-Clause licence, some by the Apache-2.0 licence. Since we use STM32CubeCLT to compile the code, it is also covered by the ST [Software Package License Agreement](https://www.st.com/resource/en/license_agreement/dm00218346.pdf).
+
+If you are reusing or redistributing this firmware, please ensure you comply with all relevant licences.
 
 * Your friends at SparkFun

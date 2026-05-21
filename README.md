@@ -2,17 +2,15 @@
 
 This repo contains the source code and compiled firmware binaries for the STM32WL55 LoRa chipset used in the [SparkPNT Facet FP](https://www.sparkfun.com/sparkpnt-facet-fp) product range
 
-The same firmware can also be run on the original [SparkFun RTK Torch](https://www.sparkfun.com/sparkfun-rtk-torch.html)
-
-Provided both Facet FP and Torch are running the same LoRa firmware, they can act as a LoRa-connected Base-Rover pair
-
 You will find the latest firmware binary attached to the latest [release](https://github.com/sparkfun/SparkFun_RTK_LoRa_Firmware/releases). The **RTCM_TRX.zip** Asset contains the firmware in **.elf** , **.hex** and **.bin** binary format.
+
+This same firmware can also be run on the original [SparkFun RTK Torch](https://www.sparkfun.com/sparkfun-rtk-torch.html). Provided both Facet FP and Torch are running the same LoRa firmware, they can act as a LoRa-connected Base-Rover pair. But, please be aware that the firmware in this repo is _not_ compatible with the original [Torch LoRa firmware v2.0.2](https://github.com/sparkfun/SparkFun_RTK_Everywhere_Firmware_Binaries/tree/main/STM32_LoRa). If you want to use Torch and Facet FP together, the Torch LoRa firmware will need to be upgraded.
 
 ## Updating the Facet FP LoRa Firmware
 
 The procedure for updating the Facet FP LoRa Firmware is still work-in-progress. But - for now - it is almost identical to Torch (described [below](#updating-the-torch-lora-firmware)): put the firmware into ```STM32 direct connect``` mode using menu options ```s``` , ```h``` , ```17```; then use STM32CubeProgrammer to upload the binary.
 
-The **.elf** or **.hex** firmware binary is easier to use than the raw **.bin** binary since they contain the program memory locations within the file. With the **.bin** binary, you need to manually set the **Start address** to **0x08000000**
+The **.elf** or **.hex** firmware binary is easier to use than the raw **.bin** binary since they contain the program memory locations within the file. With the **.bin** binary, you need to manually set the flash **Start address** to **0x08000000**
 
 ## Updating the Torch LoRa Firmware
 

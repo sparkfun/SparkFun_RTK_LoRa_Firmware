@@ -45,6 +45,7 @@ extern "C" {
 //#include "usr_cmd.h"
 #include "gpio.h"
 //#include "usart.h"
+#include "spi.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */

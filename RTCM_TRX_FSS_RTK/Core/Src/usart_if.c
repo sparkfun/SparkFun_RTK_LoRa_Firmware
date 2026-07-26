@@ -122,8 +122,10 @@ UTIL_ADV_TRACE_Status_t vcom_Init(void (*cb)(void *))
 #else
 #error Invalid DBG_PORT
 #endif
-  return UTIL_ADV_TRACE_OK;
   /* USER CODE END vcom_Init_2 */
+  MX_DMA_Init();
+  MX_SPI1_Init();
+  return UTIL_ADV_TRACE_OK;
 }
 
 UTIL_ADV_TRACE_Status_t vcom_DeInit(void)
@@ -169,6 +171,7 @@ void vcom_Trace(uint8_t *p_data, uint16_t size)
   HAL_UART_Transmit(&huart2, p_data, size, 1000);
 #endif
   /* USER CODE END vcom_Trace_2 */
+  HAL_SPI_Transmit(&hspi1, p_data, size, 100);
 }
 
 UTIL_ADV_TRACE_Status_t vcom_Trace_DMA(uint8_t *p_data, uint16_t size)
@@ -181,8 +184,9 @@ UTIL_ADV_TRACE_Status_t vcom_Trace_DMA(uint8_t *p_data, uint16_t size)
 #elif defined(DBG_PORT) && (DBG_PORT == 1)
   HAL_UART_Transmit_DMA(&huart2, p_data, size);
 #endif
-  return UTIL_ADV_TRACE_OK;
   /* USER CODE END vcom_Trace_DMA_2 */
+  HAL_SPI_Transmit_DMA(&hspi1, p_data, size, 100);
+  return UTIL_ADV_TRACE_OK;
 }
 
 UTIL_ADV_TRACE_Status_t vcom_ReceiveInit(void (*RxCb)(uint8_t *rxChar, uint16_t size, uint8_t error))
@@ -275,6 +279,10 @@ void vcom_Resume(void)
   }
 #endif
   /* USER CODE END vcom_Resume_2 */
+  if (HAL_SPI_Init(&hspi1) != HAL_OK)
+  {
+    Error_Handler();
+  }
 }
 
 #if defined(DBG_PORT)

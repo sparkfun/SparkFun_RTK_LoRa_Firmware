@@ -1004,7 +1004,7 @@ static void pull_rtcm_to_uart_handler(void *arg)
 				}
 			}
 #endif
-		 }
+		}
 	}
 	vTaskDelete(NULL);
 }

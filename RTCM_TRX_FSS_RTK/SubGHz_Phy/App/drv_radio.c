@@ -269,7 +269,7 @@ void show_hop_table(int8_t *array, int size)
 __IO int send_idx = 0;
 static void OnTxDone(void)
 {
-	APP_LOG(TS_ON,VLEVEL_M,"OnTxDone:%d\n\r", send_idx);
+	APP_LOG(TS_ON,VLEVEL_M,"OnTxDone:%d\r\n", send_idx);
 
 	BaseType_t xHigherPriorityTaskWoken, xResult;
 	xHigherPriorityTaskWoken = pdFALSE;
@@ -291,8 +291,8 @@ static void OnRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t LoraS
 
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE, xResult;
 
-	APP_LOG(TS_ON,VLEVEL_M,"OnRxDone sz=%d\n\r",size);
-	APP_LOG(TS_ON,VLEVEL_M,"RssiValue=%d dBm, SnrValue=%ddB\n\r", rssi, LoraSnr_FskCfo);
+	APP_LOG(TS_ON,VLEVEL_M,"OnRxDone sz=%d\r\n",size);
+	APP_LOG(TS_ON,VLEVEL_M,"RssiValue=%d dBm, SnrValue=%ddB\r\n", rssi, LoraSnr_FskCfo);
 	if(s_radio_attr.type == 1){
 		// APP_LOG(TS_ON,VLEVEL_M,"lora rx here\r\n");
 		if(size!=cfifo_write(&read_fifo,payload,size))
@@ -335,7 +335,7 @@ static void OnRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t LoraS
 
 static void OnTxTimeout(void)
 {
-	APP_LOG(TS_ON,VLEVEL_M,"OnTxTimeout\n\r");
+	APP_LOG(TS_ON,VLEVEL_M,"OnTxTimeout\r\n");
 	RadioTxTimeout_flag = 1;
 }
 
@@ -343,7 +343,7 @@ static void OnRxTimeout(void)
 {
 	/* USER CODE BEGIN OnRxTimeout */
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	APP_LOG(TS_ON,VLEVEL_M,"OnRxTimeout\n\r");
+	APP_LOG(TS_ON,VLEVEL_M,"OnRxTimeout\r\n");
 
 	if(s_radio_attr.fhss == 0x00)
 	{
@@ -368,7 +368,7 @@ static void OnRxError(void)
 {
 	/* USER CODE BEGIN OnRxError */
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	APP_LOG(TS_ON,VLEVEL_M,"OnRxError\n\r");
+	APP_LOG(TS_ON,VLEVEL_M,"OnRxError\r\n");
 	RadioError_flag = 1;
 	if(s_radio_attr.fhss == 0x00)
 	{
@@ -1000,7 +1000,7 @@ static void pull_rtcm_to_uart_handler(void *arg)
 					//Radio.SetChannel(hop_freq);
 					update_fhss_hop_freq(hop_freq);
 					Radio.Rx(RX_TIMEOUT_VALUE);
-					APP_LOG(TS_ON,VLEVEL_M,"no fhss packet\r\n ");
+					APP_LOG(TS_ON,VLEVEL_M,"no fhss packet\r\n");
 				}
 			}
 #endif

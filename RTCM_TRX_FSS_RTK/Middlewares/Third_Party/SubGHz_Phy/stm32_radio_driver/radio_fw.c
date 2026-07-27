@@ -813,7 +813,7 @@ static void RFW_TransmitLongPacket_TxChunkProcess( void )
     /*update end ptr*/
     SUBGRF_WriteRegister( SUBGHZ_GRTXPLDLEN, ( uint8_t )( chunk_size + write_ptr ) );
 
-    RFW_MW_LOG( TS_ON, VLEVEL_M,  "next chunk size=%d, new write ptr=%d\n\r", chunk_size + crc_size,
+    RFW_MW_LOG( TS_ON, VLEVEL_M,  "next chunk size=%d, new write ptr=%d\r\n", chunk_size + crc_size,
                 ( uint8_t )( chunk_size + crc_size + write_ptr ) );
 }
 #endif /* RFW_LONGPACKET_ENABLE == 1 */

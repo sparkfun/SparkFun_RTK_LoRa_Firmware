@@ -18,10 +18,11 @@
   */
 /* USER CODE END Header */
 
+#include "sys_conf.h" // Needed for DBG_PORT
 #include "stm32_adv_trace.h"
 #include "usart.h"
 #include "dma.h"
-#include "sys_conf.h" // Needed for DBG_PORT
+#include "spi.h"
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __USART_IF_H__

@@ -34,7 +34,7 @@ extern "C" {
 //#include "cmsis_os.h"
 //#include "app_common.h"
 //#include "app_subghz_phy.h"
-//#include "app_version.h"
+#include "app_version.h"
 #include "drv_flash.h"
 //#include "drv_radio.h"
 #include "drv_uart.h"

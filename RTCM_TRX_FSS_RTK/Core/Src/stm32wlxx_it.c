@@ -209,7 +209,7 @@ void DMA1_Channel5_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles DMA1 Channel 5 Interrupt.
+  * @brief This function handles DMA1 Channel 4 Interrupt.
   */
 void DMA1_Channel4_IRQHandler(void)
 {

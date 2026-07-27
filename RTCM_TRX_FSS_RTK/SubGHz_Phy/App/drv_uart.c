@@ -681,7 +681,7 @@ void com1_init()
 
     /* ##-3- Disable the NVIC for DMA ########################################### */
     /* USER CODE BEGIN 1 */
-    HAL_NVIC_DisableIRQ(DMA1_Channel1_IRQn);
+    HAL_NVIC_DisableIRQ(DMA1_Channel6_IRQn);
 }
 
 void com1_send_block(uint8_t *p_data, uint16_t size)

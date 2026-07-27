@@ -77,12 +77,14 @@ const UTIL_ADV_TRACE_Driver_s UTIL_TraceDriver =
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-#if defined(DBG_PORT) && (DBG_PORT < 2)
+#if defined(DBG_PORT)
 /**
   * @brief  TX complete callback
   * @return none
   */
 static void (*TxCpltCallback)(void *);
+#endif
+#if defined(DBG_PORT) && (DBG_PORT < 2)
 /**
   * @brief  RX complete callback
   * @param  rxChar ptr of chars buffer sent by user
@@ -124,6 +126,7 @@ UTIL_ADV_TRACE_Status_t vcom_Init(void (*cb)(void *))
   LL_EXTI_EnableIT_0_31(LL_EXTI_LINE_27);
   /* USER CODE END vcom_Init_2 */
 #elif(DBG_PORT == 2)
+  TxCpltCallback = cb;
   MX_DMA_Init();
   MX_SPI1_Init();
 #else
@@ -341,6 +344,14 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     HAL_UART_Receive_IT(huart, &charRx, 1);
   }
   /* USER CODE END HAL_UART_RxCpltCallback_2 */
+}
+#endif
+
+#if defined(DBG_PORT) && (DBG_PORT == 2)
+// This should be in spi.c. But TxCpltCallback is not in scope there...
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+  TxCpltCallback(NULL);
 }
 #endif
 

@@ -29,7 +29,6 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32wlxx_hal.h"
 
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stdarg.h"

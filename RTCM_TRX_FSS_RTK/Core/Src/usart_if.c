@@ -29,7 +29,6 @@
 /**
   * @brief DMA handle
   */
-extern DMA_HandleTypeDef hdma_spi1_tx;
 extern DMA_HandleTypeDef hdma_usart1_tx;
 extern DMA_HandleTypeDef hdma_usart2_tx;
 
@@ -39,14 +38,14 @@ extern DMA_HandleTypeDef hdma_usart2_tx;
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
 
-extern SPI_HandleTypeDef hspi1;
-
 /**
   * @brief buffer to receive 1 character
   */
 uint8_t charRx;
 
 /* USER CODE BEGIN EV */
+extern DMA_HandleTypeDef hdma_spi1_tx;
+extern SPI_HandleTypeDef hspi1;
 
 /* USER CODE END EV */
 
@@ -124,7 +123,6 @@ UTIL_ADV_TRACE_Status_t vcom_Init(void (*cb)(void *))
   MX_DMA_Init();
   MX_USART2_UART_Init();
   LL_EXTI_EnableIT_0_31(LL_EXTI_LINE_27);
-  /* USER CODE END vcom_Init_2 */
 #elif(DBG_PORT == 2)
   TxCpltCallback = cb;
   MX_DMA_Init();
@@ -132,6 +130,7 @@ UTIL_ADV_TRACE_Status_t vcom_Init(void (*cb)(void *))
 #else
 #error Invalid DBG_PORT
 #endif
+  /* USER CODE END vcom_Init_2 */
   return UTIL_ADV_TRACE_OK;
 }
 
@@ -162,13 +161,13 @@ UTIL_ADV_TRACE_Status_t vcom_DeInit(void)
   /* ##-3- Disable the NVIC for DMA ########################################### */
   /* USER CODE BEGIN 1 */
   HAL_NVIC_DisableIRQ(DMA1_Channel6_IRQn);
-  /* USER CODE END vcom_DeInit_2 */
 #elif defined(DBG_PORT) && (DBG_PORT == 2)
   __HAL_RCC_SPI1_FORCE_RESET();
   __HAL_RCC_SPI1_RELEASE_RESET();
   HAL_SPI_MspDeInit(&hspi1);
   HAL_NVIC_DisableIRQ(DMA1_Channel1_IRQn);
 #endif
+  /* USER CODE END vcom_DeInit_2 */
   return UTIL_ADV_TRACE_OK;
 }
 
@@ -181,10 +180,10 @@ void vcom_Trace(uint8_t *p_data, uint16_t size)
   /* USER CODE BEGIN vcom_Trace_2 */
 #elif defined(DBG_PORT) && (DBG_PORT == 1)
   HAL_UART_Transmit(&huart2, p_data, size, 1000);
-  /* USER CODE END vcom_Trace_2 */
 #elif defined(DBG_PORT) && (DBG_PORT == 2)
   HAL_SPI_Transmit(&hspi1, p_data, size, 100);
 #endif
+  /* USER CODE END vcom_Trace_2 */
 }
 
 UTIL_ADV_TRACE_Status_t vcom_Trace_DMA(uint8_t *p_data, uint16_t size)
@@ -196,10 +195,10 @@ UTIL_ADV_TRACE_Status_t vcom_Trace_DMA(uint8_t *p_data, uint16_t size)
   /* USER CODE BEGIN vcom_Trace_DMA_2 */
 #elif defined(DBG_PORT) && (DBG_PORT == 1)
   HAL_UART_Transmit_DMA(&huart2, p_data, size);
-  /* USER CODE END vcom_Trace_DMA_2 */
 #elif defined(DBG_PORT) && (DBG_PORT == 2)
   HAL_SPI_Transmit_DMA(&hspi1, p_data, size);
 #endif
+  /* USER CODE END vcom_Trace_DMA_2 */
   return UTIL_ADV_TRACE_OK;
 }
 
@@ -259,8 +258,8 @@ UTIL_ADV_TRACE_Status_t vcom_ReceiveInit(void (*RxCb)(uint8_t *rxChar, uint16_t 
   /*Start LPUART receive on IT*/
   HAL_UART_Receive_IT(&huart2, &charRx, 1);
 #endif
-  return UTIL_ADV_TRACE_OK;
   /* USER CODE END vcom_ReceiveInit_2 */
+  return UTIL_ADV_TRACE_OK;
 }
 
 void vcom_Resume(void)
@@ -291,7 +290,6 @@ void vcom_Resume(void)
   {
     Error_Handler();
   }
-  /* USER CODE END vcom_Resume_2 */
 #elif defined(DBG_PORT) && (DBG_PORT == 2)
   if (HAL_SPI_Init(&hspi1) != HAL_OK)
   {
@@ -302,6 +300,7 @@ void vcom_Resume(void)
     Error_Handler();
   }
 #endif
+  /* USER CODE END vcom_Resume_2 */
 }
 
 #if defined(DBG_PORT) && (DBG_PORT < 2)
@@ -347,14 +346,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 }
 #endif
 
-#if defined(DBG_PORT) && (DBG_PORT == 2)
-// This should be in spi.c. But TxCpltCallback is not in scope there...
-void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
-{
-  TxCpltCallback(NULL);
-}
-#endif
-
 /* USER CODE BEGIN EF */
 
 /* USER CODE END EF */
@@ -362,5 +353,12 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 /* Private Functions Definition -----------------------------------------------*/
 
 /* USER CODE BEGIN PrFD */
+#if defined(DBG_PORT) && (DBG_PORT == 2)
+// This should be in spi.c. But TxCpltCallback is not in scope there...
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+  TxCpltCallback(NULL);
+}
+#endif
 
 /* USER CODE END PrFD */

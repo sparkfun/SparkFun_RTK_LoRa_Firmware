@@ -31,6 +31,7 @@ SparkFun have tweaked it a little to:
 * From v3.0.2:
     * The LOG debug messages are available on SPI1 (Clock : PB3 (UFQFPN48 Pin 1); Data : PB5 (URQFPN48 Pin 3))
     * The [Extras folder](https://github.com/sparkfun/SparkFun_RTK_LoRa_Firmware/Extras) contains a sketch which will run on Teensy 3.2 or 4.0 to convert the clock and data debug into USB Serial
+    * UART1 RX and UART2 RX have a pull-up enabled, to avoid RX floating low when the pin is disconnected and avoid causing a break / framing error
 
 ## Compiling the Firmware
 

@@ -30,6 +30,6 @@ void  app_msg_queue_send(QueueHandle_t que, const void *const pdata, int timeWai
                 msg->data = NULL;
             }
         }
-        APP_PRINTF("MSG send err:%d , p=%p",ret,que);
+        APP_TPRINTF("MSG send err:%d , p=%p\r\n",ret,que);
     }
 }

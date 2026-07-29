@@ -213,13 +213,13 @@ void generate_hop_table(int8_t *tbl, int size,int8_t skip_seq)
 {
 	int8_t tmp;
 	int8_t array[104]={0};
-	//APP_PRINTF("center seq:%d\r\n",skip_seq);
+	//APP_TPRINTF("center seq:%d\r\n",skip_seq);
 	//int8_t *array = malloc(size*sizeof(int8_t));
 	for(int k = 1,j=0 ; k <= size; k++)
 	{
 		if(skip_seq == k) // skip fhss sync freq
 		{
-			APP_PRINTF("skip seq:%d\r\n",skip_seq);
+			APP_TPRINTF("skip seq:%d\r\n",skip_seq);
 			continue;
 		}
 		array[j++] = k;
@@ -238,7 +238,7 @@ void generate_hop_table(int8_t *tbl, int size,int8_t skip_seq)
 
     for(int k = 0; k <size;)
     {
-    	APP_PRINTF("group [%d] = [%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d] \r\n",k/10,
+    	APP_TPRINTF("generate_hop_table group [%d] = [%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d]\r\n",k/10,
     			tbl[k],tbl[k+1],tbl[k+2],tbl[k+3],tbl[k+4],tbl[k+5],tbl[k+6],tbl[k+7],tbl[k+8],tbl[k+9]);
     	if(k%50 ==0)
     	{
@@ -246,7 +246,7 @@ void generate_hop_table(int8_t *tbl, int size,int8_t skip_seq)
     	}
     	k+=10;
     }
-    APP_PRINTF("size=%d\r\n",size);
+    APP_TPRINTF("size=%d\r\n",size);
 }
 
 void show_hop_table(int8_t *array, int size)
@@ -255,7 +255,7 @@ void show_hop_table(int8_t *array, int size)
     for(int k = 0; k <size;)
     {
 
-    	APP_PRINTF("group [%d] = [%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d] \r\n",k/10,
+    	APP_TPRINTF("group [%d] = [%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d]\r\n",k/10,
     			tbl[k],tbl[k+1],tbl[k+2],tbl[k+3],tbl[k+4],tbl[k+5],tbl[k+6],tbl[k+7],tbl[k+8],tbl[k+9]);
     	if(k%50 ==0)
     	{
@@ -721,7 +721,7 @@ uint32_t radio_param_cfg(void)
 
 		memcpy(&s_radio_attr_flash, &s_radio_attr, sizeof(s_radio_attr));
 		//s_radio_attr_flash = s_radio_attr;
-		APP_LOG(TS_ON, VLEVEL_M,"attr_flash: magic %x mode %d bps %d freq %d %d level %d dprt %d \r\n",
+		APP_LOG(TS_ON, VLEVEL_M,"attr_flash: magic %x mode %d bps %d freq %d %d level %d dprt %d\r\n",
 				s_radio_attr_flash.magic,s_radio_attr_flash.mode,
 				s_radio_attr_flash.bps,s_radio_attr_flash.freq[0],s_radio_attr_flash.freq[1],
 				s_radio_attr_flash.power_level, s_radio_attr_flash.dprt);
@@ -874,7 +874,7 @@ static void pull_rtcm_to_uart_handler(void *arg)
 							memcpy(&msg_crc,msg.buf+fhss_head->header_len,sizeof(uint32_t));
 							if(crc32 != msg_crc)
 							{
-								APP_LOG(TS_ON,VLEVEL_M,"not fhss head crc32[%08x] != msg_crc[%08x] \r\n",crc32,msg_crc);
+								APP_LOG(TS_ON,VLEVEL_M,"not fhss head crc32[%08x] != msg_crc[%08x]\r\n",crc32,msg_crc);
 								hop_freq = s_fhss_info.center_freq; // must get fhss header first
 								s_sync_header = *fhss_head;
 								//Radio.SetChannel(hop_freq);
@@ -899,7 +899,7 @@ static void pull_rtcm_to_uart_handler(void *arg)
 									//Radio.SetChannel(hop_freq);
 									update_fhss_hop_freq(hop_freq);
 									Radio.Rx(RX_TIMEOUT_FHSS_ONE_HOP);
-									APP_LOG(TS_ON,VLEVEL_M,"1.next %d freq [%d] \r\n",next_hop_seq,hop_freq/1000);
+									APP_LOG(TS_ON,VLEVEL_M,"1.next %d freq [%d]\r\n",next_hop_seq,hop_freq/1000);
 									rcv_idx_in_second++;
 									next_hop_seq++;
 									show_hop_table(&s_sync_header.hopping_table[0], s_sync_header.hopping_tbl_size);
@@ -927,7 +927,7 @@ static void pull_rtcm_to_uart_handler(void *arg)
 						else
 						{
 							hop_freq = get_hop_freq(next_hop_seq);
-							APP_LOG(TS_ON,VLEVEL_M,"N.next %d freq [%d] \r\n",next_hop_seq,hop_freq/1000);
+							APP_LOG(TS_ON,VLEVEL_M,"N.next %d freq [%d]\r\n",next_hop_seq,hop_freq/1000);
 							next_hop_seq++;
 							//Radio.SetChannel(hop_freq);
 							if(next_hop_seq >= FHSS_MAX_HOP_IN_SECOND)
@@ -950,7 +950,7 @@ static void pull_rtcm_to_uart_handler(void *arg)
 
 #endif
 				flash_led();
-				APP_LOG(TS_ON,VLEVEL_M,"RX LEN=%d \r\n",msg.len);
+				APP_LOG(TS_ON,VLEVEL_M,"RX LEN=%d\r\n",msg.len);
 
 				// todo 64 byte send
 #define SPLIT_RTCM_ENABLE 1
@@ -1145,14 +1145,14 @@ static void pub_rtcm_msg_handle(void *arg)
 					{
 						OS_DELAY_MS(10);
 						Radio.Send((uint8_t *)send_buf, sizeof(s_sync_header));
-						APP_LOG(TS_ON,VLEVEL_M,"0.send fhss head [%d] send_idx %d \r\n", sizeof(s_sync_header),send_idx);
+						APP_LOG(TS_ON,VLEVEL_M,"0.send fhss head [%d] send_idx %d\r\n", sizeof(s_sync_header),send_idx);
 						OS_DELAY_MS(80);
 					}
 					else
 					{
 						OS_DELAY_MS(50);
 						Radio.Send((uint8_t *)send_buf, sizeof(s_sync_header));
-						APP_LOG(TS_ON,VLEVEL_M,"0.delay send fhss head [%d] send_idx %d \r\n", sizeof(s_sync_header),send_idx);
+						APP_LOG(TS_ON,VLEVEL_M,"0.delay send fhss head [%d] send_idx %d\r\n", sizeof(s_sync_header),send_idx);
 					}
 
 					idx++;
@@ -1396,11 +1396,11 @@ uint32_t radio_init(void)
 	APP_LOG(TS_ON,VLEVEL_M,"---after pull task ---Free heap memory: %d bytes------\r\n", xPortGetFreeHeapSize());
 
 	// Now read the settings from flash into s_radio_attr_flash
-	//APP_LOG(TS_ON,VLEVEL_M,"attr size=%d \r\n",sizeof(s_radio_attr_flash));
+	//APP_LOG(TS_ON,VLEVEL_M,"attr size=%d\r\n",sizeof(s_radio_attr_flash));
 	STMFLASH_Read(STM32_FLASH_APPCFG_BASE, (u64*)&s_radio_attr_flash, sizeof(s_radio_attr_flash)/8);
 
-	APP_LOG(TS_ON,VLEVEL_M,"flash magic:0x%x \r\n",s_radio_attr_flash.magic);
-	APP_LOG(TS_ON,VLEVEL_M,"flash version:%d \r\n",s_radio_attr_flash.version);
+	APP_LOG(TS_ON,VLEVEL_M,"flash magic:0x%x\r\n",s_radio_attr_flash.magic);
+	APP_LOG(TS_ON,VLEVEL_M,"flash version:%d\r\n",s_radio_attr_flash.version);
 
 	// Check if the s_radio_attr_flash is valid and the version matches
 	// TODO: make use of .payload_len and .crc32 here

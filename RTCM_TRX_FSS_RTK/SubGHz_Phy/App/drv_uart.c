@@ -84,7 +84,7 @@ uint16_t os_ds_que_create(OS_DS_QUEUE_TYPE *q, uint8_t *buff, uint16_t size)
 
     if (NULL == pbuff)
     {
-        APP_TPRINTF("os_ds_que_create fail for malloc %d for buffer", size);
+        APP_TPRINTF("os_ds_que_create fail for malloc %d for buffer\r\n", size);
     }
     else
     {
@@ -306,7 +306,7 @@ static void UART_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size)
         	if(huart->RxEventType == HAL_UART_RXEVENT_IDLE ||
         			huart->RxEventType == HAL_UART_RXEVENT_TC)
         	{
-                // APP_TPRINTF("uart2 rx done \r\n");
+                // APP_TPRINTF("uart2 rx done\r\n");
 //                memcpy(data.buf, uart2_rx_buf, rx_len);
 //                //HAL_UARTEx_ReceiveToIdle_IT(huart, &uart2_rx_buf[0], RX_IRQ_SIZE);
 //                start_uart_rx_irq(huart);
@@ -412,7 +412,7 @@ void UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
     // if (huart->ErrorCode == HAL_UART_ERROR_RTO)
     // {
-    //     APP_TPRINTF("uart1 to");
+    //     APP_TPRINTF("uart1 to\r\n");
     //     start_uart_rx_irq(huart);
     // }
 	APP_TPRINTF("Uart[%d] ErrorCode:0x%x\r\n",(huart->Instance ==USART2), huart->ErrorCode);
@@ -451,7 +451,7 @@ void UART_ErrorCallback(UART_HandleTypeDef *huart)
             start_uart_rx_irq(huart);
 //            data.evt_id = DRV_EVT_RX_DONE;
 //            data.len = xlen;
-            APP_TPRINTF("uart1 ov xlen=%d \r\n",xlen);
+            APP_TPRINTF("uart1 ov xlen=%d\r\n",xlen);
 //            //HAL_UARTEx_ReceiveToIdle_IT(huart, &uart1_rx_buf[0], RX_IRQ_SIZE);
 
 //            if (!xQueueIsQueueFullFromISR(uart1Queue))
@@ -491,7 +491,7 @@ void UART_ErrorCallback(UART_HandleTypeDef *huart)
 //            data.evt_id = DRV_EVT_RX_DONE;
 //            data.len = xlen;
             start_uart_rx_irq(huart);
-            APP_TPRINTF("uart2 ov  xlen=%d \r\n",xlen);
+            APP_TPRINTF("uart2 ov xlen=%d\r\n",xlen);
             //HAL_UARTEx_ReceiveToIdle_IT(huart, &uart2_rx_buf[0], RX_IRQ_SIZE);
 
 //            if (!xQueueIsQueueFullFromISR(uart2Queue))
@@ -537,7 +537,7 @@ static void drv_uart_event_task(void *pvParameters)
 
     default:
     {
-        APP_TPRINTF("Unknown port[%d],%s", port, pcTaskGetName(NULL));
+        APP_TPRINTF("Unknown port[%d],%s\r\n", port, pcTaskGetName(NULL));
         vTaskDelete(NULL);
         return;
     }
@@ -563,12 +563,12 @@ static void drv_uart_event_task(void *pvParameters)
                     // Send it to the radio if in TRNS TX mode
                     if ((event.len > 0) && (usr_cmd_is_trans_tx()))
                     {
-                        APP_LOG(TS_ON,VLEVEL_M,"trans=%d \r\n", event.len);
+                        APP_LOG(TS_ON,VLEVEL_M,"trans=%d\r\n", event.len);
                         pub_rtcm(event.buf, event.len);
                     }
                     else
                     {
-                        APP_TPRINTF(" [UART %d ]drop %d bytes\r\n", port, event.len);
+                        APP_TPRINTF("[UART %d ]drop %d bytes\r\n", port, event.len);
                     }
                 }
                 else

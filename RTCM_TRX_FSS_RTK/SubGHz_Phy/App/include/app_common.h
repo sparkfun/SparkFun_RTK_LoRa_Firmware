@@ -14,7 +14,7 @@
 // #include "utilities_def.h"
 // #include "utilities_conf.h"
 
-#define VERSION "3.0.1"
+#define VERSION "3.0.2"
 
 #define MIN(i, j) (((i) < (j)) ? (i) : (j))
 #define MAX(i, j) (((i) > (j)) ? (i) : (j))

@@ -25,9 +25,13 @@ SparkFun have tweaked it a little to:
 * Allow both UART1 and UART2 to be used as the data port
     * On Torch: UART2 acts as a combined control and data port
     * On Facet FP: the firmware sends ```AT+DPRT=0``` to select UART1 as the data port (which is connected directly to the GNSS)
-* Disable the LOG output, since both UARTs are needed on Facet FP for control and data
+* Disable the UART1 LOG output, since both UARTs are needed on Facet FP for control and data
 * ```STMFLASH_Write``` correctly erases the sector before writing the radio attributes
 * Added the ```AT+SAVE``` command to avoid unneeded flash writes
+* From v3.0.2:
+    * The LOG debug messages are available on SPI1 (Clock : PB3 (UFQFPN48 Pin 1); Data : PB5 (URQFPN48 Pin 3))
+    * The [Extras folder](https://github.com/sparkfun/SparkFun_RTK_LoRa_Firmware/Extras) contains a sketch which will run on Teensy 3.2 or 4.0 to convert the clock and data debug into USB Serial
+    * UART1 RX and UART2 RX have a pull-up enabled, to avoid RX floating low when the pin is disconnected and avoid causing a break / framing error
 
 ## Compiling the Firmware
 

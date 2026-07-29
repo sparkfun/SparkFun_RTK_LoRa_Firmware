@@ -10,7 +10,7 @@ u64 STMFLASH_ReadDoubleWord(u32 faddr)
 void STMFLASH_Read(u32 ReadAddr,u64 *pBuffer,u16 Num64bitToRead)
 {
 	u16 i;
-	//APP_PRINTF("STMFLASH_Read add=%x,len =%d \r\n",ReadAddr,Num64bitToRead);
+	//APP_PRINTF("STMFLASH_Read add=%x,len=%d\r\n",ReadAddr,Num64bitToRead);
 	for(i=0;i<Num64bitToRead;i++)
 	{
 		pBuffer[i]=STMFLASH_ReadDoubleWord(ReadAddr);
@@ -24,7 +24,7 @@ void STMFLASH_Write_NoCheck(u32 WriteAddr,u64 *pBuffer,u16 Num64bitToWrite)
 	uint64_t val;
 	HAL_StatusTypeDef status;
 	uint32_t err = 0;
-	APP_PRINTF("STMFLASH_Write_NoCheck Addr=%x,dblwordlen=%d\n",WriteAddr,Num64bitToWrite);
+	APP_PRINTF("STMFLASH_Write_NoCheck Addr=%x,dblwordlen=%d\r\n",WriteAddr,Num64bitToWrite);
 
 	for(i=0;i<Num64bitToWrite;i++)
 	{
@@ -39,7 +39,7 @@ void STMFLASH_Write_NoCheck(u32 WriteAddr,u64 *pBuffer,u16 Num64bitToWrite)
 	    	FLASH_WaitForLastOperation(1000);
 	    	status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, WriteAddr, val);
 	    	HAL_FLASH_Lock();
-	    	APP_PRINTF("prog at addr:0x%x status=%d\r\n err=0x%x\r\n",WriteAddr,status,err);
+	    	APP_PRINTF("prog at addr:0x%x status=%d err=0x%x\r\n",WriteAddr,status,err);
 	    }
 	    WriteAddr+=8;
 	}
@@ -60,7 +60,7 @@ void STMFLASH_Write(u32 WriteAddr, u64 *pBuffer, u16 Num64bitToWrite)
 	offaddr = WriteAddr - STM32_FLASH_BASE;
 	secpos = offaddr / STM_SECTOR_SIZE;
 
-	APP_PRINTF("STMFLASH_Write ADDR=0x%x secpos %d \r\n", WriteAddr, secpos);
+	APP_PRINTF("STMFLASH_Write ADDR=0x%x secpos %d\r\n", WriteAddr, secpos);
 
 	HAL_FLASH_Unlock();
 	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_SR_ERRORS);
@@ -88,7 +88,7 @@ void STMFLASH_Write(u32 WriteAddr, u64 *pBuffer, u16 Num64bitToWrite)
 // 	secoff=(offaddr%STM_SECTOR_SIZE)/8;		//在扇区内的偏移(8个字节为基本单位.)
 // 	secremain=STM_SECTOR_SIZE/8-secoff;		//扇区剩余空间大小
 // 	if(Num64bitToWrite<=secremain)secremain=Num64bitToWrite;//不大于该扇区范围
-// 	//APP_PRINTF("STMFLASH_Write ADDR=0x%x secpos %d secoff %d secremain %d \r\n",WriteAddr,secpos,secoff,secremain);
+// 	//APP_PRINTF("STMFLASH_Write ADDR=0x%x secpos %d secoff %d secremain %d\r\n",WriteAddr,secpos,secoff,secremain);
 // 	while(1)
 // 	{
 // // 		STMFLASH_Read(secpos*STM_SECTOR_SIZE+STM32_FLASH_BASE,STMFLASH_BUF,STM_SECTOR_SIZE/8);//读出整个扇区的内容

@@ -21,7 +21,6 @@
 #include "stm32_adv_trace.h"
 #include "usart.h"
 #include "dma.h"
-#include "sys_conf.h" // Needed for DBG_PORT
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __USART_IF_H__
@@ -33,6 +32,8 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "sys_conf.h" // Needed for DBG_PORT
+#include "spi.h" // Needed for SPI debug
 
 /* USER CODE END Includes */
 

@@ -147,6 +147,11 @@
 			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_rtc_ex.c</locationURI>
 		</link>
 		<link>
+			<name>Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_spi.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_spi.c</locationURI>
+		</link>
+		<link>
 			<name>Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_subghz.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_subghz.c</locationURI>
@@ -270,6 +275,11 @@
 			<name>Application/User/Core/rtc.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Core/Src/rtc.c</locationURI>
+		</link>
+		<link>
+			<name>Application/User/Core/spi.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Core/Src/spi.c</locationURI>
 		</link>
 		<link>
 			<name>Application/User/Core/stm32_lpm_if.c</name>

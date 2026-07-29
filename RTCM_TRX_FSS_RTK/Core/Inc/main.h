@@ -27,14 +27,15 @@ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "stdarg.h"
-
 #include "stm32wlxx_hal.h"
 
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
+#include "stdarg.h"
 //#include "cmsis_os.h"
 //#include "app_common.h"
 //#include "app_subghz_phy.h"
-//#include "app_version.h"
+#include "app_version.h"
 #include "drv_flash.h"
 //#include "drv_radio.h"
 #include "drv_uart.h"
@@ -45,9 +46,7 @@ extern "C" {
 //#include "usr_cmd.h"
 #include "gpio.h"
 //#include "usart.h"
-
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
+#include "spi.h"
 
 /* USER CODE END Includes */
 

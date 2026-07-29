@@ -41,12 +41,12 @@ extern "C" {
 /**
   * @brief  Verbose level for all trace logs
   */
-#define VERBOSE_LEVEL                        VLEVEL_OFF
+#define VERBOSE_LEVEL                        VLEVEL_M
 
 /**
   * @brief Enable trace logs
   */
-#define APP_LOG_ENABLED                      0
+#define APP_LOG_ENABLED                      1
 
 /**
   * @brief Activate monitoring (probes) of some internal RF signals for debug purpose
@@ -83,18 +83,24 @@ extern "C" {
   TORCH:
     COM_PORT_IDX 1 : UART2 is the command port (UART1 is only used for firmware updates)
     DBG_PORT       : is best commented out, but can be set to 0 (UART1) if desired for debug
+                     or 2 for SPI debug
     DPRT defaults to COM_PORT_IDX as the combined command and data port
 
   FACET FP:
     COM_PORT_IDX 1 : UART2 is the command port
-    DBG_PORT       : must be commented out (unless you want to send debug to the GNSS pins?)
+    DBG_PORT       : is best commented out, but can be set to 2 for SPI debug
     Send "AT+DPRT=0" to select UART1 as the data port
+
+  SPI Debug:
+    PB3 (Pin 1)    ------> SPI1_SCK
+    PB5 (Pin 3)    ------> SPI1_MOSI
+
 */
 
 // COM_PORT_IDX: selects the command port uart: 0:uart1; 1:uart2 
 #define COM_PORT_IDX                         1
-// DBG_PORT: selects the debug port uart: 0:uart1; 1:uart2; Comment to disable
-//#define DBG_PORT                             0
+// DBG_PORT: selects the debug port uart: 0:uart1; 1:uart2; 2:spi; Comment to disable
+#define DBG_PORT                             2
 
 /* USER CODE END EC */
 

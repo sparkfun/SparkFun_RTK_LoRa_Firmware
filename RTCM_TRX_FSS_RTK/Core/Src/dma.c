@@ -44,7 +44,11 @@ void MX_DMA_Init(void)
   __HAL_RCC_DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
-  /* DMA1_Channel5_IRQn interrupt configuration */
+  /* DMA1_Channel1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 5, 0); // spi tx
+  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+
+  /* DMA1_Channel4_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 5, 0); // uart2 rx
   HAL_NVIC_EnableIRQ(DMA1_Channel4_IRQn);
   /* DMA1_Channel5_IRQn interrupt configuration */
@@ -52,11 +56,11 @@ void MX_DMA_Init(void)
   HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
 
   /* DMA1_Channel6_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel7_IRQn, 5, 0); // uart1 rx
-  HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
-  /* DMA1_Channel6_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 5, 2); // uart1 tx
   HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
+  /* DMA1_Channel7_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel7_IRQn, 5, 0); // uart1 rx
+  HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
 
 }
 

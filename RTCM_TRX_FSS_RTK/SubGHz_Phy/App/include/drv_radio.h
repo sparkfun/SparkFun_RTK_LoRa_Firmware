@@ -16,7 +16,7 @@
 #include "stm32_timer.h"
 // #include "utilities_def.h"
 // #include "app_version.h"
-// #include "subghz_phy_version.h"
+#include "subghz_phy_version.h"
 #include "app_common.h"
 // #include "radio.h"
 // #include "sys_app.h"

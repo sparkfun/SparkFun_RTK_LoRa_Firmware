@@ -317,14 +317,14 @@ uint32_t user_cmd_decode(uint8_t com, uint8_t *data, uint8_t len, uint8_t **act)
 	CMD_DECODE *p_cmd_decode = &s_cmd_decode[com];
 	char *pbuff = (char *)p_cmd_decode->buff;
 	char *head = NULL;
-	// APP_LOG(TS_ON,VLEVEL_M,"enter dec \r\n");
+	// APP_LOG(TS_ON,VLEVEL_M,"enter dec\r\n");
 
 	if (p_cmd_decode->state == TRNS) // If we are in TRANSfer
 	{
 		// Check for +++ (EXIT_TRANS)
 		if (strstr((char *)data, EXIT_TRANS) != NULL)
 		{
-			APP_LOG(TS_ON,VLEVEL_M,"quit \r\n");
+			APP_LOG(TS_ON,VLEVEL_M,"quit\r\n");
 			p_cmd_decode->offset = 0;
 			memset(pbuff, 0, p_cmd_decode->maxlen);
 			user_cmd_exit_trans(com, (uint8_t*)pbuff);
@@ -335,18 +335,18 @@ uint32_t user_cmd_decode(uint8_t com, uint8_t *data, uint8_t len, uint8_t **act)
 			// if we are in TX mode
 			if (usr_cmd_is_trans_tx())
 			{
-				APP_LOG(TS_ON,VLEVEL_M,"trans=%d \r\n", len);
+				APP_LOG(TS_ON,VLEVEL_M,"trans=%d\r\n", len);
 				pub_rtcm(data, len);
 			}
 			else
 			{
-				APP_LOG(TS_ON,VLEVEL_M," ignoring %d \r\n", len);
+				APP_LOG(TS_ON,VLEVEL_M," ignoring %d\r\n", len);
 			}
 		}
 		return 0;
 	}
 
-	// APP_LOG(TS_ON,VLEVEL_M,"boot pin set [%d] \r\n", is_boot_pin_set());
+	// APP_LOG(TS_ON,VLEVEL_M,"boot pin set [%d]\r\n", is_boot_pin_set());
 
 	// We are not in TRANSfer, so fully decode the command
 	if ((len + p_cmd_decode->offset) > p_cmd_decode->maxlen)
@@ -477,7 +477,7 @@ int cmd_read_cb(uint8_t *data, const uint16_t len)
 	APP_LOG(TS_ON,VLEVEL_M,"cmd_com=%d len=%d\r\n",cmd_com,len);
 	if (cmd_com >= 0)
 	{
-		// APP_LOG(TS_ON,VLEVEL_M,"call dec \r\n");
+		// APP_LOG(TS_ON,VLEVEL_M,"call dec\r\n");
 		cmd_len = user_cmd_decode(cmd_com, data, len, &act);
 		if (cmd_len > 0 && cmd_len <= CMD_RSP_MAX_LEN)
 		{

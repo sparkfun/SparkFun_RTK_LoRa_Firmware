@@ -20,7 +20,9 @@ The procedure for updating the Torch LoRa Firmware is described [here](https://d
 
 The LoRa firmware was developed for us by Jay Bu and colleagues at Limosa. Thank you Jay.
 
-SparkFun have tweaked it a little to:
+## Change Log
+
+SparkFun have tweaked the original Limosa firmware a little to:
 
 * Allow both UART1 and UART2 to be used as the data port
     * On Torch: UART2 acts as a combined control and data port
@@ -28,10 +30,15 @@ SparkFun have tweaked it a little to:
 * Disable the UART1 LOG output, since both UARTs are needed on Facet FP for control and data
 * ```STMFLASH_Write``` correctly erases the sector before writing the radio attributes
 * Added the ```AT+SAVE``` command to avoid unneeded flash writes
+    * Flash writes default to disabled
+    * Send ```AT+SAVE=1``` to enable
+* Added the ```AT+ATTR``` radio attributes report
 * From v3.0.2:
     * The LOG debug messages are available on SPI1 (Clock : PB3 (UFQFPN48 Pin 1); Data : PB5 (URQFPN48 Pin 3))
     * The [Extras folder](https://github.com/sparkfun/SparkFun_RTK_LoRa_Firmware/tree/main/Extras/Teensy_SPI_to_USB) contains a sketch which will run on Teensy 3.2 or 4.0 to convert the clock and data debug into USB Serial
     * UART1 RX and UART2 RX have a pull-up enabled, to avoid RX floating low when the pin is disconnected and avoid causing a break / framing error
+* From v3.0.3:
+    * The UART (DMA) correctly recovers after a Framing Error - FE's were observed every few hours on Torch in Base LoRa TX and previously caused the RTCM transmit to stall
 
 ## Compiling the Firmware
 

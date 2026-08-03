@@ -415,12 +415,24 @@ void UART_ErrorCallback(UART_HandleTypeDef *huart)
     //     APP_TPRINTF("uart1 to\r\n");
     //     start_uart_rx_irq(huart);
     // }
-	APP_TPRINTF("Uart[%d] ErrorCode:0x%x\r\n",(huart->Instance ==USART2), huart->ErrorCode);
-	if(huart->ErrorCode == HAL_UART_ERROR_DMA)
+	APP_TPRINTF("Uart[%d] ErrorCode:0x%x%s\r\n",(huart->Instance == USART1) ? 1 : 2, huart->ErrorCode,
+        huart->ErrorCode == HAL_UART_ERROR_NONE ? " (NONE)" :
+        huart->ErrorCode == HAL_UART_ERROR_PE ? " (PE)" :
+        huart->ErrorCode == HAL_UART_ERROR_NE ? " (NE)" :
+        huart->ErrorCode == HAL_UART_ERROR_FE ? " (FE)" :
+        huart->ErrorCode == HAL_UART_ERROR_ORE ? " (ORE)" :
+        huart->ErrorCode == HAL_UART_ERROR_DMA ? " (DMA)" :
+        huart->ErrorCode == HAL_UART_ERROR_RTO ? " (RTO)" : "");
+    APP_TPRINTF("--- uart error callback ---Free heap memory: %d bytes------\r\n", xPortGetFreeHeapSize());
+	if(huart->ErrorCode == HAL_UART_ERROR_DMA) // DMA transfer error
 	{
 		start_uart_rx_irq(huart);// DMA error,data will drop
 	}
-    if (huart->ErrorCode == HAL_UART_ERROR_ORE)
+	if(huart->ErrorCode == HAL_UART_ERROR_FE) // Frame error
+	{
+		start_uart_rx_irq(huart);// DMA error,data will drop
+	}
+    if (huart->ErrorCode == HAL_UART_ERROR_ORE) // Overrun error
     {
         DRV_TRANS_DATA_TYPE data;
         BaseType_t xHigherPriorityTaskWoken;
@@ -724,7 +736,7 @@ int drv_uart_com1_init(void)
 
     start_uart_rx_irq(&huart1);
     
-    APP_TPRINTF( "--- cmd init ---Free heap memory: %d bytes------\r\n", xPortGetFreeHeapSize());
+    APP_TPRINTF( "--- com1 init ---Free heap memory: %d bytes------\r\n", xPortGetFreeHeapSize());
     return 0;
 }
 
@@ -751,7 +763,7 @@ int drv_uart_com2_init(void)
     
     start_uart_rx_irq(&huart2);
     
-    APP_TPRINTF( "--- cmd init ---Free heap memory: %d bytes------\r\n", xPortGetFreeHeapSize());
+    APP_TPRINTF( "--- com2 init ---Free heap memory: %d bytes------\r\n", xPortGetFreeHeapSize());
     //drv_printf("--- cmd init ---Free heap memory: %d bytes------\r\n", xPortGetFreeHeapSize());
     return 0;
 }

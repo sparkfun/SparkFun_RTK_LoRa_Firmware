@@ -36,6 +36,7 @@ extern int drv_uart_com1_clear_rx(void);
 extern int drv_uart_com2_read_set_cb(const drv_uart_read_cb_t cb);
 extern int drv_uart_com2_send(const uint8_t *data, const uint32_t len);
 extern int drv_uart_com2_clear_rx(void);
+
 extern int drv_printf(const char * format, ...);
 extern void com1_send_block(uint8_t *p_data, uint16_t size);
 extern void com1_send_DMA(uint8_t *p_data, uint16_t size);
